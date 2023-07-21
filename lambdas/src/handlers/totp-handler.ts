@@ -1,15 +1,22 @@
-import { Context } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
-import { TotpService } from "../services/totp-service";
+
+const TOTP = require("totp-generator");
+const TOTP_TTL_IN_SECONDS = 30;
+const TOTP_HASH = "SHA-512";
+const TOTP_LENGTH = 8;
 
 export class TotpHandler implements LambdaInterface {
-  public async handler(event: any, _context: Context): Promise<any> {
-    return await new TotpService().generateTOTP(
-      "ABCDEFGHIJKLMNOP",
-      "SHA-512",
-      30,
-      1622502000000,
-      8
-    );
+  public async handler(
+    event: APIGatewayProxyEvent,
+    _context: unknown
+  ): Promise<APIGatewayProxyResult | number> {
+    const secret = event.body;
+    return TOTP(secret, {
+      algorithm: TOTP_HASH,
+      period: TOTP_TTL_IN_SECONDS,
+      timestamp: Date.now(),
+      digits: TOTP_LENGTH,
+    });
   }
 }

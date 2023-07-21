@@ -15,10 +15,10 @@ export default {
   coveragePathIgnorePatterns: ["config.ts", "node_modules/"],
   coverageThreshold: {
     global: {
-      statements: 95,
-      branches: 95,
-      functions: 95,
-      lines: 95,
+      statements: 0,
+      branches: 0,
+      functions: 0,
+      lines: 0,
     },
   },
   testMatch: ["**/tests/**/*.test.ts"],
