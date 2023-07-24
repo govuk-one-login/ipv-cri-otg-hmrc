@@ -5,23 +5,21 @@ Description: "di-ipv-cri-otg-hmrc"
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
+    Runtime: nodejs18.x
+    Architectures:
+      - arm64
     Timeout: 3
 
 Resources:
   TotpFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: lambdas/src/
-      Handler: app.lambdaHandler
-      Runtime: nodejs18.x
-      Architectures:
-        - x86_64
-      Events:
-        HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /totp
-            Method: get
+      CodeUri: ../../
+      Handler: totp-handler.lambdaHandler
+      FunctionUrlConfig:
+        AuthType: AWS_IAM
+        Cors:
+          AllowOrigins: ["*"]
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -29,18 +27,18 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - totp-handler.ts
+          - lambdas/src/handlers/totp-handler.ts
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  TotpApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/totp/"
+  FunctionURLEndpoint:
+    Description: FURLFunction function name
+    Value: !GetAtt TotpFunctionUrl.FunctionUrl
   TotpFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
+    Description: "TOTP Lambda Function ARN"
+    Value: !GetAtt TotpFunction.Arn
   TotpFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Description: "Implicit IAM Role created for TOTP function"
+    Value: !GetAtt TotpFunctionRole.Arn
