@@ -27,7 +27,8 @@ export class BearerTokenHandler implements LambdaInterface {
     const body = await response.json();
 
     return {
-      token: body.access_token
+      token: body.access_token, 
+      tokenExpiry: (Date.now() + (body.expires_in*1000)).toString()
     }
   }
 }
