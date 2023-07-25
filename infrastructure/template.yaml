@@ -14,7 +14,7 @@ Resources:
   TotpFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: ../../
+      CodeUri: ../
       Handler: totp-handler.lambdaHandler
       FunctionUrlConfig:
         AuthType: AWS_IAM
@@ -28,6 +28,24 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - lambdas/src/handlers/totp-handler.ts
+
+  BearerTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: bearer-token-handler.lambdaHandler
+      FunctionUrlConfig:
+        AuthType: AWS_IAM
+        Cors:
+          AllowOrigins: ["*"]
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - lambdas/src/handlers/bearer-token-handler.ts
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
