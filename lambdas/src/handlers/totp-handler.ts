@@ -1,7 +1,7 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 
-const TOTP = require("totp-generator");
+import TOTP from "totp-generator";
 const TOTP_TTL_IN_SECONDS = 30;
 const TOTP_HASH = "SHA-512";
 const TOTP_LENGTH = 8;
@@ -18,8 +18,8 @@ export class TotpHandler implements LambdaInterface {
       digits: TOTP_LENGTH,
     });
     return {
-      totp: totp_code
-    }
+      totp: totp_code,
+    };
   }
 }
 

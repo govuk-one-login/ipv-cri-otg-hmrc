@@ -1,11 +1,11 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: di-ipv-cri-otg-hmrc
 Globals:
   Function:
     Runtime: nodejs18.x
     Architectures:
-    - arm64
+      - arm64
     Timeout: 3
 Resources:
   TotpFunction:
@@ -17,15 +17,15 @@ Resources:
         AuthType: AWS_IAM
         Cors:
           AllowOrigins:
-          - '*'
+            - "*"
       Environment:
         Variables:
-          NODE_OPTIONS: ' --enable-source-maps'
+          NODE_OPTIONS: " --enable-source-maps"
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
         EntryPoints:
-        - lambdas/src/handlers/totp-handler.ts
+          - lambdas/src/handlers/totp-handler.ts
         Minify: true
         Sourcemap: true
         Target: es2020
@@ -39,15 +39,15 @@ Resources:
         AuthType: AWS_IAM
         Cors:
           AllowOrigins:
-          - '*'
+            - "*"
       Environment:
         Variables:
-          NODE_OPTIONS: ' --enable-source-maps'
+          NODE_OPTIONS: " --enable-source-maps"
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
         EntryPoints:
-        - lambdas/src/handlers/bearer-token-handler.ts
+          - lambdas/src/handlers/bearer-token-handler.ts
         Minify: true
         Sourcemap: true
         Target: es2020
@@ -57,17 +57,17 @@ Outputs:
     Description: FURLFunction function name
     Value:
       Fn::GetAtt:
-      - TotpFunctionUrl
-      - FunctionUrl
+        - TotpFunctionUrl
+        - FunctionUrl
   TotpFunction:
     Description: TOTP Lambda Function ARN
     Value:
       Fn::GetAtt:
-      - TotpFunction
-      - Arn
+        - TotpFunction
+        - Arn
   TotpFunctionIamRole:
     Description: Implicit IAM Role created for TOTP function
     Value:
       Fn::GetAtt:
-      - TotpFunctionRole
-      - Arn
+        - TotpFunctionRole
+        - Arn
