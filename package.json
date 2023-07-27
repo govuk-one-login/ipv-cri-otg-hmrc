@@ -10,7 +10,8 @@
     "lint": "npm run lint:prettier && npm run lint:eslint",
     "compile": "tsc",
     "unit": "jest --config=jest.config.ts",
-    "test": "npm run compile && npm run unit"
+    "test": "npm run compile && npm run unit",
+    "detect-secrets": "npm detect-secrets scan > .secrets.baseline"
   },
   "author": "alphagov",
   "license": "ISC",
