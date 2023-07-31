@@ -9,7 +9,7 @@ export class TotpHandler implements LambdaInterface {
   public async handler(event: {
     SecretString: string;
   }): Promise<{ totp: string }> {
-    const totp_code = TOTP(event.SecretString, {
+    const totp_code = TOTP(event?.SecretString, {
       algorithm: TOTP_HASH,
       period: TOTP_TTL_IN_SECONDS,
       timestamp: Date.now(),

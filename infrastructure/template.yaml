@@ -11,6 +11,34 @@ Globals:
     Timeout: 3
 
 Resources:
+  OtgStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: ../statemachine/pdpOtgStateMachine.json
+      DefinitionSubstitutions:
+        TotpFunctionArn: !GetAtt TotpFunction.Arn
+        BearerTokenFunctionArn: !GetAtt BearerTokenFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref TotpFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref BearerTokenFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:PutSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+                - ssm:GetParameters
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
+
   TotpFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -51,6 +79,14 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  OtgStateMachineeArn:
+    Description: Otg state machine ARN
+    Value: !Ref OtgStateMachine
+  OtgStateMachineRole:
+    Description:
+      IAM Role created for Otg Trading state machine based on the specified
+      SAM Policy Templates
+    Value: !GetAtt OtgStateMachineRole.Arn
   FunctionURLEndpoint:
     Description: FURLFunction function name
     Value: !GetAtt TotpFunctionUrl.FunctionUrl
