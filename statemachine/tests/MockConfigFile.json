@@ -1,0 +1,121 @@
+{
+  "StateMachines": {
+    "pdpOtgStateMachine": {
+      "TestCases": {
+        "HappyPathTest": {
+          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get CLIENT_ID": "GetClientIdSuccess",
+          "Get OAuth URL": "GetOAuthUrlSuccess",
+          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
+          "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenExpirySuccess",
+          "Put OAuthAccessToken": "PutOAuthAccessTokenSuccess"
+        }
+      }
+    }
+  },
+  "MockedResponses": {
+    "GetsTotpSecretSuccess": {
+      "0": {
+        "Return": {
+          "Name": "TOTP_SECRET",
+          "SecretString": "IWRERERWERWR"
+        }
+      }
+    },
+    "MockedInvokeGenerateTotpCodeLambdaSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200,
+          "Payload": {
+            "totp": "35635930"
+          }
+        }
+      }
+    },
+    "GetClientIdSuccess": {
+      "0": {
+        "Return": {
+          "InvalidParameters": [],
+          "Parameters": [
+            {
+              "DataType": "text",
+              "Name": "hmrc_client_id",
+              "Type": "String",
+              "Value": "afkuhjsfasffsdfjknjj"
+            }
+          ]
+        }
+      }
+    },
+    "GetClientSecretSuccess": {
+      "0": {
+        "Return": {
+          "CreatedDate": "2023-07-24T16:15:11.457Z",
+          "Name": "HMRC_Client_Secret",
+          "SecretString": "12c0cff2-eacc-4d9b-840b-ebc1e0e15686"
+        }
+      }
+    },
+    "GetOAuthUrlSuccess": {
+      "0": {
+        "Return": {
+          "Parameter": {
+            "Name": "hmrc_oauth_url",
+            "Type": "String",
+            "Value": "test-oauth-token-url"
+          }
+        }
+      }
+    },
+    "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200,
+          "Payload": {
+            "token": "body.access_token",
+            "tokenExpiry": 866868768688
+          }
+        }
+      }
+    },
+    "PutOAuthAccessTokenExpirySuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200
+        }
+      }
+    },
+    "PutOAuthAccessTokenSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200
+        }
+      }
+    },
+    "GetClientIdRetryOnErrorWithSuccess": {
+      "0-2": {
+        "Throw": {
+          "Error": "InternalServerException",
+          "Cause": "Server Exception while getting Client Id server in secretsmanager Service"
+        }
+      },
+      "3": {
+        "Return": {
+          "InvalidParameters": [],
+          "Parameters": [
+            {
+              "DataType": "text",
+              "LastModifiedDate": "2023-07-24T15:10:56.547Z",
+              "Name": "hmrc_client_id",
+              "Type": "String",
+              "Value": "afkuhjsfasffsdfjknjj",
+              "Version": 1
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -16,5 +16,5 @@
     "noImplicitAny": true
   },
   "exclude": ["node_modules"],
-  "include": ["./lambdas/src/", "./lambdas/tests/"]
+  "include": ["./lambdas/src/", "./lambdas/tests/", "./statemachine/tests/"]
 }
