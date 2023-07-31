@@ -1,5 +1,4 @@
 import { TotpHandler } from "../../../src/handlers/totp-handler";
-import { APIGatewayProxyEvent, Context } from "aws-lambda";
 
 describe("totp-handler", () => {
   beforeEach(() => {
@@ -10,10 +9,10 @@ describe("totp-handler", () => {
     jest.spyOn(Date, "now").mockReturnValue(1622502000000);
     const totpHandler = new TotpHandler();
     const event = {
-      body: "ABCDEFGHIJKLMNOP",
-    } as APIGatewayProxyEvent;
+      SecretString: "some-secret"
+    }
 
-    const result = await totpHandler.handler(event, {} as Context);
+    const result = await totpHandler.handler(event);
     expect(result).toBe("87779282");
   });
 });
