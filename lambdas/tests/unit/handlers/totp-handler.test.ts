@@ -9,8 +9,8 @@ describe("totp-handler", () => {
     jest.spyOn(Date, "now").mockReturnValue(1622502000000);
     const totpHandler = new TotpHandler();
     const event = {
-      SecretString: "some-secret"
-    }
+      SecretString: "some-secret",
+    };
 
     const result = await totpHandler.handler(event);
     expect(result).toBe("87779282");
