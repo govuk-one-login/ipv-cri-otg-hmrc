@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Digital Identity IPV CRI Otg-Hmrc API"
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Architectures:
+      - arm64
+    Timeout: 3
+
+Resources:
+  TotpGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambdas/totp-generator
+      Handler: totp-generator-handler.lambdaHandler
+      FunctionUrlConfig:
+        AuthType: AWS_IAM
+        Cors:
+          AllowOrigins: ["*"]
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - src/totp-generator-handler.ts
+
+Outputs:
+  TotpGeneratorFunctionURLEndpoint:
+    Description: FURLFunction function name
+    Value: !GetAtt TotpGeneratorFunctionUrl.FunctionUrl
+  TotpGeneratorFunction:
+    Description: "TotpGenerator Lambda Function ARN"
+    Value: !GetAtt TotpGeneratorFunction.Arn
+  TotpGeneratorFunctionIamRole:
+    Description: "Implicit IAM Role created for TotpGenerator function"
+    Value: !GetAtt TotpGeneratorFunctionRole.Arn
