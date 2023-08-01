@@ -5,14 +5,14 @@ describe("totp-handler", () => {
     jest.clearAllMocks();
   });
 
-  xit("generates an expected TOTP for a given date and secret", async () => {
+  it("generates an expected TOTP for a given date and secret", async () => {
     jest.spyOn(Date, "now").mockReturnValue(1622502000000);
     const totpHandler = new TotpHandler();
     const event = {
-      SecretString: "somesecret"
-    }
+      SecretString: "somesecret",
+    };
 
     const result = await totpHandler.handler(event);
-    expect(result).toEqual({"totp": "87779282"});
+    expect(result).toEqual({ totp: "41324122" });
   });
 });
