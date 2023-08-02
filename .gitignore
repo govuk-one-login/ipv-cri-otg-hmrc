@@ -87,6 +87,12 @@ web_modules/
 .next
 out
 
+# SAM build output
+**/build
+**/build/*
+.aws-sam
+.aws-sam/*
+
 # Nuxt.js build / generate output
 .nuxt
 dist
