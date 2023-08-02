@@ -1,4 +1,3 @@
-import { APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 
 import TOTP from "totp-generator";
