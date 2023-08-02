@@ -13,7 +13,7 @@ export class TotpGeneratorHandler implements LambdaInterface {
   public async handler(
     event: any,
     _context: unknown
-  ): Promise<APIGatewayProxyResult | any> {
+  ): Promise<{totp: string}> {
     try {
       if (!event.SecretString) {
         throw new Error("No secret string present.");
