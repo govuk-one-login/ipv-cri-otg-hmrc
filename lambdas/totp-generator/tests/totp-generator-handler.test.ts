@@ -27,6 +27,6 @@ describe("totp-generator-handler", () => {
     const event = { SecretString: "$" };
     expect(
       async () => await totpHandler.handler(event, {} as Context)
-    ).rejects.toThrowError("Invalid base32 character in key");
+    ).rejects.toThrowError("Invalid secret");
   });
 });
