@@ -22,7 +22,7 @@ jobs:
         working-directory: lambdas/${{ matrix.lambda }}
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:eslint
         working-directory: lambdas/${{ matrix.lambda }}
 
       - name: Test
