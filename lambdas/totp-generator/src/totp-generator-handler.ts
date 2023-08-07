@@ -30,8 +30,8 @@ export class TotpGeneratorHandler implements LambdaInterface {
         totp: totp_code,
       };
     } catch (error: unknown) {
-      let message = 'Unknown Error'
-      if (error instanceof Error) message = error.message
+      let message = "Unknown Error";
+      if (error instanceof Error) message = error.message;
       logger.error("Error TOTP Generator: " + message);
       throw error;
     }
