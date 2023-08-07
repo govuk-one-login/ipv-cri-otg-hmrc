@@ -1,7 +1,7 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
-
 import { generateConfig, Totp } from "time2fa";
 import { Logger } from "@aws-lambda-powertools/logger";
+
 const TOTP_TTL_IN_SECONDS = 30;
 const TOTP_HASH = "sha512";
 const TOTP_LENGTH = 8;
@@ -10,7 +10,7 @@ const logger = new Logger();
 
 export class TotpGeneratorHandler implements LambdaInterface {
   public async handler(
-    event: any,
+    event: { SecretString: string },
     _context: unknown
   ): Promise<{ totp: string }> {
     try {
@@ -29,8 +29,10 @@ export class TotpGeneratorHandler implements LambdaInterface {
       return {
         totp: totp_code,
       };
-    } catch (error: any) {
-      logger.error("Error TOTP Generator: " + error.message);
+    } catch (error: unknown) {
+      let message = 'Unknown Error'
+      if (error instanceof Error) message = error.message
+      logger.error("Error TOTP Generator: " + message);
       throw error;
     }
   }
