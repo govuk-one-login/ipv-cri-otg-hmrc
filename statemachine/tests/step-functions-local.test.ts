@@ -14,7 +14,7 @@ import {
   Wait,
 } from "testcontainers";
 
-jest.setTimeout(30_000);
+jest.setTimeout(25_000);
 
 describe("step-function-local", () => {
   describe("OAuth Access token", () => {
@@ -26,7 +26,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
       it("checks container is running", () => {
@@ -192,7 +192,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -216,7 +216,9 @@ describe("step-function-local", () => {
           sfnInput,
           sfnExpectedOutput,
         }) => {
-          it(`should return ${sfnExpectedOutput} when supplied ${sfnInput}`, async () => {
+          const output = JSON.stringify(sfnExpectedOutput);
+          const input = JSON.stringify(sfnInput);
+          it(`should return ${output} when supplied ${input}`, async () => {
             // GIVEN
             const input = JSON.stringify(sfnInput);
             // WHEN
@@ -253,7 +255,7 @@ describe("step-function-local", () => {
             expect(resultsStateEntered).toBeDefined();
             expect(resultsStateEntered?.length).toBe(1);
             expect(resultsStateEntered[0].stateEnteredEventDetails?.input).toBe(
-              JSON.stringify(sfnInput)
+              input
             );
             expect(resultsTaskSucceeded).toBeDefined();
             expect(resultsTaskSucceeded?.length).toBe(0);
@@ -279,7 +281,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -303,7 +305,9 @@ describe("step-function-local", () => {
           sfnInput,
           sfnExpectedOutput,
         }) => {
-          it(`should return ${sfnExpectedOutput} when supplied ${sfnInput}`, async () => {
+          const output = JSON.stringify(sfnExpectedOutput);
+          const input = JSON.stringify(sfnInput);
+          it(`should return ${output} when supplied ${input}`, async () => {
             // GIVEN
             const input = JSON.stringify(sfnInput);
             // WHEN
@@ -349,7 +353,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -462,7 +466,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -559,7 +563,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -641,7 +645,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -757,7 +761,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -873,7 +877,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -1035,7 +1039,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -1207,7 +1211,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -1282,7 +1286,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
@@ -1357,7 +1361,7 @@ describe("step-function-local", () => {
         composeEnvironment = await createTestContainer();
         sfnClient = createSfnClient();
 
-        await sleep(20_000); // Additional delay to ensure container readiness
+        await sleep(2_000); // Additional delay to ensure container readiness
       });
       afterAll(async () => await composeEnvironment?.down());
 
