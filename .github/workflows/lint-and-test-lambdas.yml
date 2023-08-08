@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lambda: ["totp-generator"]
+        lambda: ["totp-generator", "bearer-token-handler"]
     steps:
       - uses: actions/checkout@v3
 
@@ -22,7 +22,7 @@ jobs:
         working-directory: lambdas/${{ matrix.lambda }}
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:eslint
         working-directory: lambdas/${{ matrix.lambda }}
 
       - name: Test
