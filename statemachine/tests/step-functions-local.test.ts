@@ -985,7 +985,9 @@ describe("step-function-local", () => {
         },
       };
 
-      describe.each(mapToTestParams(putOAuthAccessTokenExpiryParameterPermissionErrorData))(
+      describe.each(
+        mapToTestParams(putOAuthAccessTokenExpiryParameterPermissionErrorData)
+      )(
         "$mockTestCase",
         ({
           mockTestCaseExecution,
@@ -1032,7 +1034,6 @@ describe("step-function-local", () => {
           });
         }
       );
-      
     });
     describe("Put OAuth access token secret permission not configured", () => {
       beforeAll(async () => {
@@ -1153,12 +1154,15 @@ describe("step-function-local", () => {
           },
           output: {
             Error: "SecretsManager.SecretsManagerException",
-            Cause: "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)"
+            Cause:
+              "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)",
           },
         },
       };
 
-      describe.each(mapToTestParams(putOAuthAccessTokenSecretPermissionErrorData))(
+      describe.each(
+        mapToTestParams(putOAuthAccessTokenSecretPermissionErrorData)
+      )(
         "$mockTestCase",
         ({
           mockTestCaseExecution,
@@ -1229,11 +1233,11 @@ describe("step-function-local", () => {
             Name: "TOTP_SECRET",
             SecretString: "IWRERERWERWR",
           },
-          output:{
+          output: {
             Error: "Invalid secret",
-            Cause: "invalid secret length"
-          }
-        }
+            Cause: "invalid secret length",
+          },
+        },
       };
 
       describe.each(mapToTestParams(totpInValidSecretData))(
@@ -1304,11 +1308,11 @@ describe("step-function-local", () => {
             Name: "TOTP_SECRET",
             SecretString: "IWRERERWERWR",
           },
-          output:{
+          output: {
             Error: "No secret string present.",
-            Cause: ""
-          }
-        }
+            Cause: "",
+          },
+        },
       };
 
       describe.each(mapToTestParams(totpSecretAbsentData))(
@@ -1447,7 +1451,7 @@ describe("step-function-local", () => {
           },
           output: {
             Error: "Error in BearerTokenHandler: server error",
-            Cause: "Internal Server Error"
+            Cause: "Internal Server Error",
           },
         },
       };
@@ -1589,7 +1593,8 @@ describe("step-function-local", () => {
         )}`,
         credentials: {
           accessKeyId: StepFunctionConstants.AWS_ACCESS_KEY_ID as string,
-          secretAccessKey: StepFunctionConstants.AWS_SECRET_ACCESS_KEY as string,
+          secretAccessKey:
+            StepFunctionConstants.AWS_SECRET_ACCESS_KEY as string,
         },
         region: StepFunctionConstants.AWS_DEFAULT_REGION,
       });
