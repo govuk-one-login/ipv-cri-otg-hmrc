@@ -19,7 +19,7 @@ happy:
 	--name happyPathExecution \
 	--state-machine ${STATE_MACHINE_ARN}#HappyPathTest \
 	--input file://events/sfn_valid_input.json \
-	--no-cli-pager 
+	--no-cli-pager
 happy-h:
 	aws stepfunctions get-execution-history \
 	--endpoint http://localhost:8083 \

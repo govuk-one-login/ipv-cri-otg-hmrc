@@ -14,5 +14,5 @@ export const StepFunctionConstants = {
   STATE_MACHINE_NAME: "pdpOtgStateMachine",
   AWS_DEFAULT_REGION: "local",
   AWS_ACCESS_KEY_ID: "local",
-  AWS_SECRET_ACCESS_KEY: "local"
+  AWS_SECRET_ACCESS_KEY: "local",
 };
