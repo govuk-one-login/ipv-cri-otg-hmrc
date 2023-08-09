@@ -11,7 +11,6 @@ echo "😱 stack name expected as first argument, e.g. ./deploy otg-hmrc-user1"
 exit 1
 fi
 
-./gradlew clean
 sam validate -t infrastructure/template.yaml
 sam build -t infrastructure/template.yaml
 sam deploy --stack-name "$stack_name" \
