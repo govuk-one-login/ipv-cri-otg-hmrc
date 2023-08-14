@@ -9,7 +9,44 @@ Globals:
       - arm64
     Timeout: 3
 
+Parameters:
+  TotpSecretName:
+    Type: String
+
+  ClientSecretName:
+    Type: String
+
+  ClientId:
+    Type: String
+
+  OAuthUrl:
+    Type: String
+  
+  BearerTokenSecretName:
+    Type: String
+
 Resources:
+  ClientIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Ref ClientId
+      Description: HMRC Client Id
+
+  OAuthUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Ref OAuthUrl 
+      Description: HMRC OAuth Url
+
+  BearerTokenExpiry:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: ""
+        
+
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -45,6 +82,36 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/totp-generator-handler.ts
+
+  OAuthTokenStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: !Sub "${AWS::StackName}-OAuthTokenGenerator"
+      DefinitionUri: ../step-functions/oauth-token-generator.asl.json
+      DefinitionSubstitutions:
+        TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
+        BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref TotpGeneratorFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref BearerTokenHandlerFunction
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+        - SSMParameterReadPolicy:
+            ParameterName: !Ref ClientIdParameter
+        - SSMParameterReadPolicy:
+            ParameterName: !Ref OAuthUrlParameter
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:PutSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
 
 Outputs:
   BearerTokenHandlerFunctionURLEndpoint:

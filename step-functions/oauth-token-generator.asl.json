@@ -1,0 +1,219 @@
+{
+  "Comment": "A Hello World example demonstrating various state types of the Amazon States Language",
+  "StartAt": "Get TOTP_SECRET",
+  "States": {
+    "Get TOTP_SECRET": {
+      "Type": "Task",
+      "Next": "Lambda Invoke Generate TOTP Code",
+      "Parameters": {
+        "SecretId": "TOTP_SECRET"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle GetTOTPSecret error",
+          "Comment": "TOTP secret error"
+        }
+      ]
+    },
+    "Lambda Invoke Generate TOTP Code": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${TotpGeneratorFunctionArn}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Get CLIENT_ID",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle GenerateTOTPCode error"
+        }
+      ]
+    },
+    "Get CLIENT_ID": {
+      "Type": "Task",
+      "Next": "Get CLIENT_SECRET",
+      "Parameters": {
+        "Names": [
+          "hmrc_client_id"
+        ]
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameters",
+      "ResultPath": "$.clientId",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle Get Client_ID error"
+        }
+      ],
+      "ResultSelector": {
+        "value.$": "$.Parameters[0].Value"
+      }
+    },
+    "Get CLIENT_SECRET": {
+      "Type": "Task",
+      "Next": "Get OAuth URL",
+      "Parameters": {
+        "SecretId": "HMRC_Client_Secret"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle Get Client_Secret Error"
+        }
+      ],
+      "ResultPath": "$.clientSecret",
+      "ResultSelector": {
+        "value.$": "$.SecretString"
+      }
+    },
+    "Handle Get Client_Secret Error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Get OAuth URL": {
+      "Type": "Task",
+      "Next": "Lambda Invoke Generate OAuth Access Token",
+      "Parameters": {
+        "Name": "hmrc_oauth_url"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle Get Oauth URL Error"
+        }
+      ],
+      "ResultSelector": {
+        "value.$": "$.Parameter.Value"
+      },
+      "ResultPath": "$.oAuthURL"
+    },
+    "Handle Get Oauth URL Error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Handle Get Client_ID error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Lambda Invoke Generate OAuth Access Token": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${BearerTokenFunctionArn}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Parallel",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle GenerateBearerToken Error"
+        }
+      ]
+    },
+    "Parallel": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Put OauthAccessTokenExpiry",
+          "States": {
+            "Put OauthAccessTokenExpiry": {
+              "Type": "Task",
+              "End": true,
+              "Parameters": {
+                "Name": "hmrc-bearer-token-expiry",
+                "Value.$": "$.Payload.tokenExpiry",
+                "Overwrite": "true"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:ssm:putParameter"
+            }
+          }
+        },
+        {
+          "StartAt": "Put OAuthAccessToken",
+          "States": {
+            "Put OAuthAccessToken": {
+              "Type": "Task",
+              "Parameters": {
+                "SecretId": "HMRCBearerToken",
+                "SecretString.$": "$.Payload.token"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
+              "ResultPath": null,
+              "End": true
+            }
+          }
+        }
+      ],
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Handle Put BearerToken Error"
+        }
+      ]
+    },
+    "Handle GenerateTOTPCode error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Handle GetTOTPSecret error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Handle GenerateBearerToken Error": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Handle Put BearerToken Error": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}
