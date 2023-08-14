@@ -16,36 +16,28 @@ Parameters:
   ClientSecretName:
     Type: String
 
+  BearerTokenSecretName:
+    Type: String
+
   ClientId:
     Type: String
 
   OAuthUrl:
     Type: String
-  
-  BearerTokenSecretName:
-    Type: String
 
 Resources:
-  ClientIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Ref ClientId
-      Description: HMRC Client Id
-
   OAuthUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !Ref OAuthUrl 
+      Value: !Ref OAuthUrl
       Description: HMRC OAuth Url
 
   BearerTokenExpiry:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: ""
-        
+      Value: AWS::NoValue
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
@@ -91,27 +83,35 @@ Resources:
       DefinitionSubstitutions:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
+        BearerTokenSecretName: !Ref BearerTokenSecretName
+        OAuthUrlParameter: !Ref OAuthUrlParameter
+        BearerTokenExpiry: !Ref BearerTokenExpiry
+        ClientSecretName: !Ref ClientSecretName
+        TotpSecretName: !Ref TotpSecretName
+        ClientId: !Ref ClientId
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref TotpGeneratorFunction
         - LambdaInvokePolicy:
             FunctionName: !Ref BearerTokenHandlerFunction
         - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
-        - SSMParameterReadPolicy:
-            ParameterName: !Ref ClientIdParameter
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${TotpSecretName}-??????
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientSecretName}-??????
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientId}-??????
         - SSMParameterReadPolicy:
             ParameterName: !Ref OAuthUrlParameter
         - Statement:
             - Effect: Allow
               Action:
                 - secretsmanager:PutSecretValue
-              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${BearerTokenSecretName}-??????
         - Statement:
             - Effect: Allow
               Action:
                 - ssm:PutParameter
-              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${BearerTokenExpiry}
 
 Outputs:
   BearerTokenHandlerFunctionURLEndpoint:
