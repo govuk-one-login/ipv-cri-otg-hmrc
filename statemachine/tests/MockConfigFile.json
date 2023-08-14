@@ -1,84 +1,84 @@
 {
   "StateMachines": {
-    "pdpOtgStateMachine": {
+    "oauth-token-generator": {
       "TestCases": {
         "HappyPathTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "GetOAuthUrlSuccess",
           "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
           "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenExpirySuccess",
           "Put OAuthAccessToken": "PutOAuthAccessTokenSuccess"
         },
         "TotpSecretResourceNotFoundUnHappyTest": {
-          "Get TOTP_SECRET": "SecretResourceNotFound"
+          "Get Totp Secret": "SecretResourceNotFound"
         },
         "TotpSecretPermissionsErrorUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretPermissionsError"
+          "Get Totp Secret": "GetsTotpSecretPermissionsError"
         },
         "GenerateTotpCodeFailedDueToInValidSecret": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "GenerateTotpCodeFailedDueToInValidSecretLength"
         },
         "GenerateTotpCodeFailedDueToSecretAbsentTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "GenerateTotpCodeFailedDueToSecretAbsent"
         },
         "ClientSecretResourceNotFoundUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "SecretResourceNotFound"
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "SecretResourceNotFound"
         },
         "ClientSecretPermissionsErrorUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetsClientSecretPermissionsError"
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetsClientSecretPermissionsError"
         },
         "ClientIdParameterResourcePermissionUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "ClientIdParameterResourcePermissionsError"
+          "Get Client Id": "ClientIdParameterResourcePermissionsError"
         },
         "GenerateOAuthTokenFailedDueToServerErrorTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "GetOAuthUrlSuccess",
           "Lambda Invoke Generate OAuth Access Token": "GenerateOAuthAccessTokenError"
         },
         "OAuthURLParameterResourcePermissionUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "GetsOAuthUrlParameterPermissionsError"
         },
         "OAuthURLParameterResourceNotFoundUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "ParameterResourceNotFound"
         },
         "PutOAuthAccessTokenExpiryPermissionUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "GetOAuthUrlSuccess",
           "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
           "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenExpiryPermissionError"
         },
         "PutOAuthAccessTokenSecretPermissionUnHappyTest": {
-          "Get TOTP_SECRET": "GetsTotpSecretSuccess",
+          "Get Totp Secret": "GetsTotpSecretSuccess",
           "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
-          "Get CLIENT_ID": "GetClientIdSuccess",
-          "Get CLIENT_SECRET": "GetClientSecretSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
           "Get OAuth URL": "GetOAuthUrlSuccess",
           "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
           "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenSuccess",
@@ -109,15 +109,8 @@
     "GetClientIdSuccess": {
       "0": {
         "Return": {
-          "InvalidParameters": [],
-          "Parameters": [
-            {
-              "DataType": "text",
-              "Name": "hmrc_client_id",
-              "Type": "String",
-              "Value": "afkuhjsfasffsdfjknjj"
-            }
-          ]
+          "Name": "HMRC_Client_Id",
+          "SecretString": "afkuhjsfasffsdfjknjj"
         }
       }
     },

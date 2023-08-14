@@ -25,5 +25,6 @@ const config: Config.InitialOptions = {
   transform: {
     "^.+\\.ts?$": "ts-jest",
   },
+  setupFiles: ["<rootDir>/setEnvVars.js"],
 };
 export default config;

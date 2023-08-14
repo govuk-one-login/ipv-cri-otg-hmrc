@@ -6,10 +6,5 @@ services:
     image: amazon/aws-stepfunctions-local
     ports:
       - "8083:8083"
-    environment:
-      AWS_SECRET_ACCESS_KEY: "local"
-      SFN_MOCK_CONFIG: "/home/stepfunctionslocal/MockConfigFile.json"
-      AWS_DEFAULT_REGION: "local"
-      AWS_ACCESS_KEY_ID: "local"
-    volumes:
-      - ./tests/MockConfigFile.json:/home/stepfunctionslocal/MockConfigFile.json
+    #volumes:
+    # - ./tests/MockConfigFile.json:/home/stepfunctionslocal/MockConfigFile.json

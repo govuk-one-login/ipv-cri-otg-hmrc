@@ -60,7 +60,7 @@ Resources:
   OtgStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
-      DefinitionUri: ../statemachine/pdpOtgStateMachine.json
+      DefinitionUri: ../step-functions/oauth-token-generator.asl.json
       DefinitionSubstitutions:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn

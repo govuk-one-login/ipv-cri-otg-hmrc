@@ -1,11 +1,15 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-STATE_MACHINE_NAME=pdpOtgStateMachine
-STATE_MACHINE_DEFINITION_FILE=file://${STATE_MACHINE_NAME}.json
-STATE_MACHINE_ARN=arn:aws:states:local:123456789012:stateMachine:${STATE_MACHINE_NAME}
-STATE_MACHINE_EXECUTION_ARN=arn:aws:states:local:123456789012:execution:${STATE_MACHINE_NAME}
+STATE_MACHINE_NAME=oauth-token-generator
+REGION=us-east-1
+STATE_MACHINE_DEFINITION_FILE=file://${ROOT_DIR}/../step-functions/${STATE_MACHINE_NAME}.asl.json
+STATE_MACHINE_ARN=arn:aws:states:${REGION}:123456789012:stateMachine:${STATE_MACHINE_NAME}
+STATE_MACHINE_EXECUTION_ARN=arn:aws:states::123456789012:execution:${STATE_MACHINE_NAME}
 
 run:
-	docker compose up -d --force-recreate
+	docker run -d -p 8083:8083 \
+	--mount type=bind,readonly,source=$(ROOT_DIR)/tests/MockConfigFile.json,destination=/home/StepFunctionsLocal/MockConfigFile.json \
+	-e SFN_MOCK_CONFIG="/home/StepFunctionsLocal/MockConfigFile.json" \
+	amazon/aws-stepfunctions-local
 create:
 	aws stepfunctions create-state-machine \
 	--endpoint-url http://localhost:8083 \

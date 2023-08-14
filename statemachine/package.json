@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "lint:prettier": "prettier --check ..",
     "lint:prettier-fix": "npx prettier --write ..",
@@ -10,7 +11,8 @@
     "lint": "npm run lint:prettier && npm run lint:eslint",
     "compile": "tsc",
     "unit": "jest --config=jest.config.ts",
-    "test": "npm run compile && npm run unit"
+    "test": "npm run compile && npm run unit",
+    "env:generate": "ts-node ./tests/generate-env-file.mjs otg-hmrc"
   },
   "author": "alphagov",
   "license": "MIT",
@@ -23,6 +25,7 @@
     "@aws-sdk/client-sfn": "^3.385.0",
     "@types/aws-lambda": "8.10.114",
     "@types/jest": "^29.5.3",
+    "@types/node": "^20.4.10",
     "@typescript-eslint/eslint-plugin": "5.10.2",
     "@typescript-eslint/parser": "5.10.2",
     "esbuild-jest": "0.5.0",

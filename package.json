@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3.388.0",
+    "prettier": "^3.0.1"
+  }
+}
