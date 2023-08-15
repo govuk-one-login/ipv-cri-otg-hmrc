@@ -1,7 +1,7 @@
 import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { StnContainerHelper } from "./sfn-container-helper";
 
-jest.setTimeout(10_000);
+jest.setTimeout(30_000);
 
 describe("step-function-local", () => {
   describe("OAuth Access token", () => {
@@ -65,7 +65,7 @@ describe("step-function-local", () => {
         const results = await stnContainerHelper.waitFor(
           (event: HistoryEvent) =>
             event?.type === "TaskStateExited" &&
-            event?.stateExitedEventDetails?.name === "Get TOTP_SECRET",
+            event?.stateExitedEventDetails?.name === "Get Totp Secret",
           responseStepFunction
         );
         // THEN
@@ -91,7 +91,7 @@ describe("step-function-local", () => {
         const results = await stnContainerHelper.waitFor(
           (event: HistoryEvent) =>
             event?.type === "TaskStateExited" &&
-            event?.stateExitedEventDetails?.name === "Get TOTP_SECRET",
+            event?.stateExitedEventDetails?.name === "Get Totp Secret",
           responseStepFunction
         );
         // THEN
@@ -126,7 +126,7 @@ describe("step-function-local", () => {
         const results = await stnContainerHelper.waitFor(
           (event: HistoryEvent) =>
             event?.type === "TaskStateExited" &&
-            event?.stateExitedEventDetails?.name === "Get CLIENT_SECRET",
+            event?.stateExitedEventDetails?.name === "Get Client Secret",
           responseStepFunction
         );
         // THEN
@@ -152,7 +152,7 @@ describe("step-function-local", () => {
         const results = await stnContainerHelper.waitFor(
           (event: HistoryEvent) =>
             event?.type === "TaskStateExited" &&
-            event?.stateExitedEventDetails?.name === "Get CLIENT_SECRET",
+            event?.stateExitedEventDetails?.name === "Get Client Secret",
           responseStepFunction
         );
         // THEN

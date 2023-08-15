@@ -13,13 +13,14 @@ import {
   Wait,
 } from "testcontainers";
 import { StepFunctionConstants } from "./step-functions-constants";
+import path from "path";
 
 export class StnContainerHelper {
   private sfnClient: Promise<SFNClient>;
   private composeEnvironment: Promise<StartedDockerComposeEnvironment>;
 
   public constructor() {
-    this.composeEnvironment = Promise.resolve(this.createTestContainer());
+    this.composeEnvironment = Promise.resolve(this.createTestContainer("../"));
     this.sfnClient = Promise.resolve(this.createSfnClient());
   }
 
@@ -73,11 +74,14 @@ export class StnContainerHelper {
     });
   };
 
-  createTestContainer = async (): Promise<StartedDockerComposeEnvironment> => {
+  createTestContainer = async (
+    dockerLocation: string
+  ): Promise<StartedDockerComposeEnvironment> => {
     const environment = await new DockerComposeEnvironment(
-      "./",
+      path.resolve(__dirname, dockerLocation),
       "docker-compose.yaml"
     )
+      .withNoRecreate()
       .withWaitStrategy("Starting server on port 8083", Wait.forHealthCheck())
       .up(["step_function_local"]);
     return environment;
