@@ -1,15 +1,15 @@
 import { HistoryEvent } from "@aws-sdk/client-sfn";
-import { StnContainerHelper } from "./sfn-container-helper";
+import { SfnContainerHelper } from "./sfn-container-helper";
 
 jest.setTimeout(30_000);
 
 describe("step-function-local", () => {
   describe("OAuth Access token", () => {
-    let stnContainerHelper: StnContainerHelper;
+    let stnContainerHelper: SfnContainerHelper;
     describe("successfully generated", () => {
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
-      });
+        stnContainerHelper = new SfnContainerHelper();
+      }, 15_000);
       afterAll(() => stnContainerHelper.shutDown());
       it("checks container is running", () => {
         expect(stnContainerHelper.getContainer()).toBeDefined();
@@ -48,9 +48,9 @@ describe("step-function-local", () => {
     });
 
     describe("TOTP_SECRET identifier", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
       it("should return Secrets Manager can't find the specified secret", async () => {
@@ -108,9 +108,9 @@ describe("step-function-local", () => {
     });
 
     describe("CLIENT_SECRET identifier", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
 
@@ -169,10 +169,10 @@ describe("step-function-local", () => {
     });
 
     describe("OAuth Url parameter not found", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
 
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
       it("should return OAuth Url parameter not Found", async () => {
@@ -230,10 +230,10 @@ describe("step-function-local", () => {
     });
 
     describe("Put OAuth access token expiry", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
 
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
       it("should return OAuth access token expiry parameter permission not configured", async () => {
@@ -264,10 +264,10 @@ describe("step-function-local", () => {
       });
     });
     describe("Put OAuth access token", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
 
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
 
@@ -299,10 +299,10 @@ describe("step-function-local", () => {
       });
     });
     describe("Generate Totp Code", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
 
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
       it("should failed due to Invalid Secret", async () => {
@@ -359,10 +359,10 @@ describe("step-function-local", () => {
       });
     });
     describe("Generate OAuth Token", () => {
-      let stnContainerHelper: StnContainerHelper;
+      let stnContainerHelper: SfnContainerHelper;
 
       beforeAll(async () => {
-        stnContainerHelper = new StnContainerHelper();
+        stnContainerHelper = new SfnContainerHelper();
       });
       afterAll(() => stnContainerHelper.shutDown());
       it("should failed Due To Server Error", async () => {
