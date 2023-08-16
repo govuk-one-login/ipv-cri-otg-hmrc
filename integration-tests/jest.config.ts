@@ -21,6 +21,7 @@ const config: Config.InitialOptions = {
       lines: 100,
     },
   },
+  setupFiles: ["<rootDir>/setEnvVars.js"],
   testMatch: ["**/tests/**/*.test.ts"],
   transform: {
     "^.+\\.ts?$": "ts-jest",
