@@ -201,7 +201,7 @@
       "0": {
         "Throw": {
           "Error": "Ssm.SsmException",
-          "Cause": "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/ZeBoNPTSdIWUSRAihAcjObezbCdqiHCT is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_client_id because no identity-based policy allows the ssm:GetParameters action (Service: Ssm, Status Code: 400, Request ID: eaa53baf-9933-4e15-afe7-539a6ef75ca2)"
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/ZeBoNPTSdIWUSRAihAcjObezbCdqiHCT is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_client_id because no identity-based policy allows the ssm:GetParameters action (Service: Ssm, Status Code: 400, Request ID: eaa53baf-9933-4e15-afe7-539a6ef75ca2)"
         }
       }
     },
@@ -225,7 +225,7 @@
       "0": {
         "Throw": {
           "Error": "Ssm.SsmException",
-          "Cause": "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/giJpYtNQeUFZRDAVegxozxZKXSxsRAoM is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_oauth_url because no identity-based policy allows the ssm:GetParameter action (Service: Ssm, Status Code: 400, Request ID: 7ee4e39f-3fed-4b8f-afab-7b43c8c897bc)"
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/giJpYtNQeUFZRDAVegxozxZKXSxsRAoM is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_oauth_url because no identity-based policy allows the ssm:GetParameter action (Service: Ssm, Status Code: 400, Request ID: 7ee4e39f-3fed-4b8f-afab-7b43c8c897bc)"
         }
       }
     },
@@ -233,7 +233,7 @@
       "0": {
         "Throw": {
           "Error": "Ssm.SsmException",
-          "Cause": "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/opeMbZdaKgpxHjImgSCIKmpFPCYyiSfz is not authorized to perform: ssm:PutParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc-bearer-token-expiry because no identity-based policy allows the ssm:PutParameter action (Service: Ssm, Status Code: 400, Request ID: 77f708ac-d698-44d1-b99e-34ec6a680edc)"
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/opeMbZdaKgpxHjImgSCIKmpFPCYyiSfz is not authorized to perform: ssm:PutParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc-bearer-token-expiry because no identity-based policy allows the ssm:PutParameter action (Service: Ssm, Status Code: 400, Request ID: 77f708ac-d698-44d1-b99e-34ec6a680edc)"
         }
       }
     },
@@ -241,7 +241,7 @@
       "0": {
         "Throw": {
           "Error": "SecretsManager.SecretsManagerException",
-          "Cause": "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)"
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)"
         }
       }
     },
