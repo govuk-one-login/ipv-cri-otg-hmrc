@@ -4,10 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "lint:prettier": "prettier --check ..",
-    "lint:prettier-fix": "npx prettier --write ..",
-    "lint:eslint": "eslint ..",
-    "lint": "npm run lint:prettier && npm run lint:eslint",
+    "lint:prettier-fix": "pre-commit run prettier --all-files",
+    "lint:eslint": "eslint .",
     "compile": "tsc",
     "unit": "jest --config=jest.config.ts",
     "test": "npm run compile && npm run unit"
