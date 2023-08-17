@@ -223,7 +223,7 @@ describe("step-function-local", () => {
           JSON.stringify({
             Error: "Ssm.SsmException",
             Cause:
-              "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/giJpYtNQeUFZRDAVegxozxZKXSxsRAoM is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_oauth_url because no identity-based policy allows the ssm:GetParameter action (Service: Ssm, Status Code: 400, Request ID: 7ee4e39f-3fed-4b8f-afab-7b43c8c897bc)",
+              "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/giJpYtNQeUFZRDAVegxozxZKXSxsRAoM is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_oauth_url because no identity-based policy allows the ssm:GetParameter action (Service: Ssm, Status Code: 400, Request ID: 7ee4e39f-3fed-4b8f-afab-7b43c8c897bc)",
           })
         );
       });
@@ -258,7 +258,7 @@ describe("step-function-local", () => {
           JSON.stringify({
             Error: "Ssm.SsmException",
             Cause:
-              "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/opeMbZdaKgpxHjImgSCIKmpFPCYyiSfz is not authorized to perform: ssm:PutParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc-bearer-token-expiry because no identity-based policy allows the ssm:PutParameter action (Service: Ssm, Status Code: 400, Request ID: 77f708ac-d698-44d1-b99e-34ec6a680edc)",
+              "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/opeMbZdaKgpxHjImgSCIKmpFPCYyiSfz is not authorized to perform: ssm:PutParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc-bearer-token-expiry because no identity-based policy allows the ssm:PutParameter action (Service: Ssm, Status Code: 400, Request ID: 77f708ac-d698-44d1-b99e-34ec6a680edc)",
           })
         );
       });
@@ -293,7 +293,7 @@ describe("step-function-local", () => {
           JSON.stringify({
             Error: "SecretsManager.SecretsManagerException",
             Cause:
-              "User: arn:aws:sts::local:assumed-role/ola-otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)",
+              "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)",
           })
         );
       });
