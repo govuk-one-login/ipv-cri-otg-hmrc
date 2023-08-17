@@ -1,0 +1,272 @@
+{
+  "StateMachines": {
+    "oauth-token-generator": {
+      "TestCases": {
+        "HappyPathTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "GetOAuthUrlSuccess",
+          "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
+          "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenExpirySuccess",
+          "Put OAuthAccessToken": "PutOAuthAccessTokenSuccess"
+        },
+        "TotpSecretResourceNotFoundUnHappyTest": {
+          "Get Totp Secret": "SecretResourceNotFound"
+        },
+        "TotpSecretPermissionsErrorUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretPermissionsError"
+        },
+        "GenerateTotpCodeFailedDueToInValidSecret": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "GenerateTotpCodeFailedDueToInValidSecretLength"
+        },
+        "GenerateTotpCodeFailedDueToSecretAbsentTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "GenerateTotpCodeFailedDueToSecretAbsent"
+        },
+        "ClientSecretResourceNotFoundUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "SecretResourceNotFound"
+        },
+        "ClientSecretPermissionsErrorUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetsClientSecretPermissionsError"
+        },
+        "ClientIdParameterResourcePermissionUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "ClientIdParameterResourcePermissionsError"
+        },
+        "GenerateOAuthTokenFailedDueToServerErrorTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "GetOAuthUrlSuccess",
+          "Lambda Invoke Generate OAuth Access Token": "GenerateOAuthAccessTokenError"
+        },
+        "OAuthURLParameterResourcePermissionUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "GetsOAuthUrlParameterPermissionsError"
+        },
+        "OAuthURLParameterResourceNotFoundUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "ParameterResourceNotFound"
+        },
+        "PutOAuthAccessTokenExpiryPermissionUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "GetOAuthUrlSuccess",
+          "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
+          "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenExpiryPermissionError"
+        },
+        "PutOAuthAccessTokenSecretPermissionUnHappyTest": {
+          "Get Totp Secret": "GetsTotpSecretSuccess",
+          "Lambda Invoke Generate TOTP Code": "MockedInvokeGenerateTotpCodeLambdaSuccess",
+          "Get Client Id": "GetClientIdSuccess",
+          "Get Client Secret": "GetClientSecretSuccess",
+          "Get OAuth URL": "GetOAuthUrlSuccess",
+          "Lambda Invoke Generate OAuth Access Token": "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess",
+          "Put OauthAccessTokenExpiry": "PutOAuthAccessTokenSuccess",
+          "Put OAuthAccessToken": "PutOAuthAccessTokenSecretPermissionError"
+        }
+      }
+    }
+  },
+  "MockedResponses": {
+    "GetsTotpSecretSuccess": {
+      "0": {
+        "Return": {
+          "Name": "TOTP_SECRET",
+          "SecretString": "IWRERERWERWR"
+        }
+      }
+    },
+    "MockedInvokeGenerateTotpCodeLambdaSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200,
+          "Payload": {
+            "totp": "35635930"
+          }
+        }
+      }
+    },
+    "GetClientIdSuccess": {
+      "0": {
+        "Return": {
+          "SecretString": "HMRC_Client_Id"
+        }
+      }
+    },
+    "GetClientSecretSuccess": {
+      "0": {
+        "Return": {
+          "CreatedDate": "2023-07-24T16:15:11.457Z",
+          "Name": "HMRC_Client_Secret",
+          "SecretString": "12c0cff2-eacc-4d9b-840b-ebc1e0e15686"
+        }
+      }
+    },
+    "GetOAuthUrlSuccess": {
+      "0": {
+        "Return": {
+          "Parameter": {
+            "Name": "hmrc_oauth_url",
+            "Type": "String",
+            "Value": "test-oauth-token-url"
+          }
+        }
+      }
+    },
+    "MockedInvokeGenerateOAuthAccessTokenLambdaSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200,
+          "Payload": {
+            "token": "body.access_token",
+            "tokenExpiry": 866868768688
+          }
+        }
+      }
+    },
+    "PutOAuthAccessTokenExpirySuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200
+        }
+      }
+    },
+    "PutOAuthAccessTokenSuccess": {
+      "0": {
+        "Return": {
+          "StatusCode": 200
+        }
+      }
+    },
+    "GetClientIdRetryOnErrorWithSuccess": {
+      "0-2": {
+        "Throw": {
+          "Error": "InternalServerException",
+          "Cause": "Server Exception while getting Client Id server in secretsmanager Service"
+        }
+      },
+      "3": {
+        "Return": {
+          "InvalidParameters": [],
+          "Parameters": [
+            {
+              "DataType": "text",
+              "LastModifiedDate": "2023-07-24T15:10:56.547Z",
+              "Name": "hmrc_client_id",
+              "Type": "String",
+              "Value": "afkuhjsfasffsdfjknjj",
+              "Version": 1
+            }
+          ]
+        }
+      }
+    },
+    "SecretResourceNotFound": {
+      "0": {
+        "Throw": {
+          "Error": "SecretsManager.ResourceNotFoundException",
+          "Cause": "Secrets Manager can't find the specified secret. (Service: SecretsManager, Status Code: 400, Request ID: 02d1a25c-ef11-4d4b-92f7-323330a9a3c2)"
+        }
+      }
+    },
+    "ParameterResourceNotFound": {
+      "0": {
+        "Throw": {
+          "Error": "Ssm.ParameterNotFoundException",
+          "Cause": "Service returned error code ParameterNotFound (Service: Ssm, Status Code: 400, Request ID: 4dc5822a-c05b-4f7d-a454-13b19c464876)"
+        }
+      }
+    },
+    "ClientIdParameterResourcePermissionsError": {
+      "0": {
+        "Throw": {
+          "Error": "Ssm.SsmException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/ZeBoNPTSdIWUSRAihAcjObezbCdqiHCT is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_client_id because no identity-based policy allows the ssm:GetParameters action (Service: Ssm, Status Code: 400, Request ID: eaa53baf-9933-4e15-afe7-539a6ef75ca2)"
+        }
+      }
+    },
+    "GetsTotpSecretPermissionsError": {
+      "0": {
+        "Throw": {
+          "Error": "SecretsManager.SecretsManagerException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/stack-StateMachineRole-1SXH7VTMU9WPV/AMSjcZhDHLcUfcUlFEjldMZElLNaIMwq is not authorized to perform: secretsmanager:GetSecretValue on resource: TOT_SECRET because no identity-based policy allows the secretsmanager:GetSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 585907ec-ee9b-4e4d-a889-2ce3f0bce1cf)"
+        }
+      }
+    },
+    "GetsClientSecretPermissionsError": {
+      "0": {
+        "Throw": {
+          "Error": "SecretsManager.SecretsManagerException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/stack-StateMachineRole-1SXH7VTMU9WPV/AMSjcZhDHLcUfcUlFEjldMZElLNaIMwq is not authorized to perform: secretsmanager:GetSecretValue on resource: CLIENT_SECRET because no identity-based policy allows the secretsmanager:GetSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 585907ec-ee9b-4e4d-a889-2ce3f0bce1cf)"
+        }
+      }
+    },
+    "GetsOAuthUrlParameterPermissionsError": {
+      "0": {
+        "Throw": {
+          "Error": "Ssm.SsmException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/giJpYtNQeUFZRDAVegxozxZKXSxsRAoM is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc_oauth_url because no identity-based policy allows the ssm:GetParameter action (Service: Ssm, Status Code: 400, Request ID: 7ee4e39f-3fed-4b8f-afab-7b43c8c897bc)"
+        }
+      }
+    },
+    "PutOAuthAccessTokenExpiryPermissionError": {
+      "0": {
+        "Throw": {
+          "Error": "Ssm.SsmException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/opeMbZdaKgpxHjImgSCIKmpFPCYyiSfz is not authorized to perform: ssm:PutParameter on resource: arn:aws:ssm:eu-west-2:local:parameter/hmrc-bearer-token-expiry because no identity-based policy allows the ssm:PutParameter action (Service: Ssm, Status Code: 400, Request ID: 77f708ac-d698-44d1-b99e-34ec6a680edc)"
+        }
+      }
+    },
+    "PutOAuthAccessTokenSecretPermissionError": {
+      "0": {
+        "Throw": {
+          "Error": "SecretsManager.SecretsManagerException",
+          "Cause": "User: arn:aws:sts::local:assumed-role/otg-stack-OtgStateMachineRole-1SXH7VTMU9WPV/oBBIiAoqlxurTyhMKpQPbezGVkvPfNLb is not authorized to perform: secretsmanager:PutSecretValue on resource: demo_BearerToken because no identity-based policy allows the secretsmanager:PutSecretValue action (Service: SecretsManager, Status Code: 400, Request ID: 7ef591b1-cf97-4019-8a51-0bb4e862f81b)"
+        }
+      }
+    },
+    "GenerateTotpCodeFailedDueToInValidSecretLength": {
+      "0": {
+        "Throw": {
+          "Error": "Invalid secret",
+          "Cause": "invalid secret length"
+        }
+      }
+    },
+    "GenerateTotpCodeFailedDueToSecretAbsent": {
+      "0": {
+        "Throw": {
+          "Error": "No secret string present."
+        }
+      }
+    },
+    "GenerateOAuthAccessTokenError": {
+      "0": {
+        "Throw": {
+          "Error": "Error in BearerTokenHandler: server error",
+          "Cause": "Internal Server Error"
+        }
+      }
+    }
+  }
+}
