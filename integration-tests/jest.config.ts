@@ -9,7 +9,7 @@ const config: Config.InitialOptions = {
   verbose: true,
   clearMocks: true,
   collectCoverage: true,
-  collectCoverageFrom: ["statemachine/**/*.{js,ts}", "!**/tests/**"],
+  collectCoverageFrom: ["integration-tests/**/*.{js,ts}", "!**/tests/**"],
   coverageDirectory: "coverage",
   coverageProvider: "v8",
   coveragePathIgnorePatterns: ["config.ts", "node_modules/"],
