@@ -123,12 +123,12 @@ Outputs:
   BearerTokenHandlerFunctionIamRole:
     Description: "Implicit IAM Role created for BearerTokenHandler function"
     Value: !GetAtt BearerTokenHandlerFunctionRole.Arn
-  OtgStateMachineeArn:
+  OAuthTokenStateMachineArn:
     Description: Otg state machine ARN
-    Value: !Ref OtgStateMachine
-  OtgStateMachineRole:
-    Description: "IAM Role created for Otg state machine based on the specified"
-    Value: !GetAtt OtgStateMachineRole.Arn
+    Value: !Ref OAuthTokenStateMachine
+  OAuthTokenStateMachineRole:
+    Description: "IAM Role created for OAuth token state machine based on the specified"
+    Value: !GetAtt OAuthTokenStateMachineRole.Arn
   TotpGeneratorFunctionURLEndpoint:
     Description: FURLFunction function name
     Value: !GetAtt TotpGeneratorFunctionUrl.FunctionUrl
