@@ -2,6 +2,7 @@ import {
   CreateStateMachineCommand,
   DescribeStateMachineCommand,
   DescribeStateMachineCommandOutput,
+  ExecutionDoesNotExist,
   GetExecutionHistoryCommand,
   GetExecutionHistoryCommandOutput,
   HistoryEvent,
@@ -14,11 +15,16 @@ import fs from "fs";
 import path from "path";
 import { StepFunctionConstants } from "./step-functions-constants";
 
+const MAX_RETRIES = 10;
+
 export class SfnContainerHelper {
   private sfnClient: Promise<SFNClient>;
   private composeEnvironment: Promise<StartedTestContainer>;
 
-  public constructor(private readonly mockContent?: string) {
+  public constructor(
+    private readonly mockContent?: string,
+    private tempFilePath?: string
+  ) {
     this.composeEnvironment = Promise.resolve(this.createTestContainer());
     this.sfnClient = Promise.resolve(this.createSfnClient());
   }
@@ -26,13 +32,8 @@ export class SfnContainerHelper {
   public getContainer = async () => {
     const container = await this.composeEnvironment;
     if (this.mockContent) {
-      const tempFilePath = path.join(__dirname, "tempFile.json");
-      fs.writeFileSync(tempFilePath, this.mockContent, "utf-8");
-      try {
-        await this.copyFileToContainer(container, tempFilePath);
-      } finally {
-        fs.unlinkSync(tempFilePath);
-      }
+      this.tempFilePath = this.getFileForPartialMock();
+      await this.copyFileToContainer(container, this.tempFilePath);
     } else {
       await this.copyFileToContainer(container);
     }
@@ -42,6 +43,21 @@ export class SfnContainerHelper {
     // .on("end", () => console.log("Stream closed"));
     return container;
   };
+
+  getFileForPartialMock = () => {
+    if (!this.mockContent)
+      throw Error("MockContent not supplied for partial mockconfigfile");
+
+    this.tempFilePath = path.join(__dirname, "tempFile.json");
+    fs.writeFileSync(this.tempFilePath, this.mockContent, "utf-8");
+    return this.tempFilePath;
+  };
+
+  private releasePartialMockConfigfile() {
+    if (this.tempFilePath) {
+      fs.unlinkSync(this.tempFilePath);
+    }
+  }
 
   private async copyFileToContainer(
     container: StartedTestContainer,
@@ -56,7 +72,10 @@ export class SfnContainerHelper {
     ];
     await container.copyFilesToContainer(copyConfig);
   }
-  public shutDown = async () => await (await this.composeEnvironment)?.stop();
+  public shutDown = async () => {
+    await (await this.composeEnvironment)?.stop();
+    this.releasePartialMockConfigfile();
+  };
 
   public startStepFunctionExecution = async (
     testName: string,
@@ -154,20 +173,34 @@ export class SfnContainerHelper {
   };
 
   untilExecutionCompletes = async (
-    executionResponse: StartExecutionCommandOutput
+    executionResponse: StartExecutionCommandOutput,
+    retries = MAX_RETRIES
   ): Promise<GetExecutionHistoryCommandOutput> => {
-    let historyResponse: GetExecutionHistoryCommandOutput;
     try {
-      do {
-        historyResponse = await this.getExecutionHistory(
-          executionResponse.executionArn
-        );
-      } while (!this.executionState(historyResponse, "ExecutionSucceeded"));
-      return historyResponse;
-    } catch (error) {
-      this.untilExecutionCompletes(executionResponse);
+      const historyResponse = await this.getExecutionHistory(
+        executionResponse.executionArn
+      );
+      if (this.executionState(historyResponse, "ExecutionSucceeded")) {
+        return historyResponse;
+      }
+      if (retries > 0) {
+        await this.sleep(1_000);
+        return this.untilExecutionCompletes(executionResponse, retries - 1);
+      }
+      throw new Error(`Execution did not complete successfully`);
+    } catch (error: unknown) {
+      if (
+        error instanceof ExecutionDoesNotExist &&
+        error.name === "ExecutionDoesNotExist" &&
+        retries > 0
+      ) {
+        await this.sleep(1_000);
+        return this.untilExecutionCompletes(executionResponse, retries - 1);
+      } else {
+        await this.sleep(1_000);
+        return this.untilExecutionCompletes(executionResponse, retries - 1);
+      }
     }
-    return this.untilExecutionCompletes(executionResponse);
   };
   getExecutionHistory = async (
     executionArn?: string
@@ -190,7 +223,11 @@ export class SfnContainerHelper {
   };
   describeStepFunction =
     async (): Promise<DescribeStateMachineCommandOutput> => {
-      const sfnClient = new SFNClient({});
+      const sfnClient = new SFNClient({
+        region:
+          process.env.AWS_DEFAULT_REGION ||
+          StepFunctionConstants.AWS_DEFAULT_REGION,
+      });
 
       return await sfnClient.send(
         new DescribeStateMachineCommand({
