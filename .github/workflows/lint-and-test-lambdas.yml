@@ -2,6 +2,7 @@ name: Lint and test lambdas
 
 on:
   pull_request:
+  workflow_dispatch: # Deploy Manually
 
 jobs:
   lint_and_test:
