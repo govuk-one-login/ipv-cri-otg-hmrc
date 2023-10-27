@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   step_function_local:
-    container_name: "stepfunction_local"
+    container_name: "otg-generate"
     image: amazon/aws-stepfunctions-local
     ports:
       - "8083:8083"
