@@ -18,12 +18,11 @@ describe("generate-totp-unhappy", () => {
 
   it("should failed due to Invalid Secret", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "TotpSecretPermissionsErrorUnHappyTest",
-        input
-      );
-      
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "TotpSecretPermissionsErrorUnHappyTest",
+      input
+    );
+
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -43,11 +42,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should return Secrets Manager can't find the specified secret", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "TotpSecretResourceNotFoundUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "TotpSecretResourceNotFoundUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -66,11 +64,10 @@ describe("generate-totp-unhappy", () => {
   });
   it("should return Secrets Manager permission not configured", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "TotpSecretPermissionsErrorUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "TotpSecretPermissionsErrorUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -90,11 +87,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should return Secrets Manager can't find the specified secret", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "ClientSecretResourceNotFoundUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "ClientSecretResourceNotFoundUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -113,11 +109,10 @@ describe("generate-totp-unhappy", () => {
   });
   it("should return Secrets Manager permission not configured", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "ClientSecretPermissionsErrorUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "ClientSecretPermissionsErrorUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -134,14 +129,13 @@ describe("generate-totp-unhappy", () => {
       })
     );
   });
-      
+
   it("should return OAuth Url parameter not Found", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "OAuthURLParameterResourceNotFoundUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "OAuthURLParameterResourceNotFoundUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -160,11 +154,10 @@ describe("generate-totp-unhappy", () => {
   });
   it("should return OAuth Url parameter permission not configured", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "OAuthURLParameterResourcePermissionUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "OAuthURLParameterResourcePermissionUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -184,11 +177,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should return OAuth access token expiry parameter permission not configured", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "PutOAuthAccessTokenExpiryPermissionUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "PutOAuthAccessTokenExpiryPermissionUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -208,11 +200,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should return Put OAuth access token secret permission not configured", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "PutOAuthAccessTokenSecretPermissionUnHappyTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "PutOAuthAccessTokenSecretPermissionUnHappyTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -232,11 +223,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should failed due to Invalid Secret", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "GenerateTotpCodeFailedDueToInValidSecret",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "GenerateTotpCodeFailedDueToInValidSecret",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -255,11 +245,10 @@ describe("generate-totp-unhappy", () => {
   });
   it("should failed due to Absent Secret", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "GenerateTotpCodeFailedDueToSecretAbsentTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "GenerateTotpCodeFailedDueToSecretAbsentTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -279,11 +268,10 @@ describe("generate-totp-unhappy", () => {
 
   it("should failed Due To Server Error", async () => {
     const input = JSON.stringify({ valid: "input" });
-    const responseStepFunction =
-      await sfnContainer.startStepFunctionExecution(
-        "GenerateOAuthTokenFailedDueToServerErrorTest",
-        input
-      );
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "GenerateOAuthTokenFailedDueToServerErrorTest",
+      input
+    );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
         event?.type === "TaskStateExited" &&
@@ -300,5 +288,4 @@ describe("generate-totp-unhappy", () => {
       })
     );
   });
-
 });
