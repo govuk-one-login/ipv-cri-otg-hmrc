@@ -8,7 +8,7 @@ import {
   SFNClient,
   StartExecutionCommand,
   StartExecutionCommandOutput,
-  StateMachineType
+  StateMachineType,
 } from "@aws-sdk/client-sfn";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { StepFunctionConstants } from "./sfn-constants";
