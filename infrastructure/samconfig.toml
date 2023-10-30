@@ -7,4 +7,13 @@ region = "eu-west-2"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
 disable_rollback = true
-parameter_overrides = "TotpSecretName=\"TOTP_SECRET\"  ClientSecretName=\"HMRC_Client_Secret\" ClientId=\"HMRC_Client_Id\" OAuthUrl=\"https://test-api.service.hmrc.gov.uk/oauth/token\" BearerTokenSecretName=\"HMRCBearerToken\""
+parameter_overrides = [
+    "TotpSecretName=TOTP_SECRET",
+    "ClientSecretName=HMRC_Client_Secret",
+    "ClientId=HMRC_Client_Id",
+    "OAuthUrl=https://test-api.service.hmrc.gov.uk/oauth/token",
+    "BearerTokenName=HMRCBearerToken",
+    "Environment=dev",
+    "CommonStackName=common-cri-api",
+    "CodeSigningEnabled=false"
+]
