@@ -6,6 +6,7 @@ on:
       - reopened
       - ready_for_review
       - synchronize
+  workflow_dispatch: # Deploy Manually
 jobs:
   test:
     runs-on: ubuntu-latest
