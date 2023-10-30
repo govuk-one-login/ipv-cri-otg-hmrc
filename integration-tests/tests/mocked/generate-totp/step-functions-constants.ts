@@ -6,16 +6,6 @@ const STATE_MACHINE_FILE = path.join(
   __dirname,
   "../../step-functions/oauth-token-generator.asl.json"
 );
-
-export const StepFunctionConstants = {
-  mockFileHostPath: path.join(__dirname, "./MockConfigFile.json"),
-  mockFileContainerPath: "/home/stepfunctionslocal/MockConfigFile.json",
-  DUMMY_ROLE: "arn:aws:iam::123456789012:role/DummyRole",
-  EVENT_FILE,
-  STATE_MACHINE_ASL: fs.readFileSync(STATE_MACHINE_FILE).toString(),
-  EVENT_JSON_STRING: fs.readFileSync(EVENT_FILE).toString(),
-  STATE_MACHINE_NAME: "oauth-token-generator",
-  AWS_DEFAULT_REGION: "local",
-  AWS_ACCESS_KEY_ID: "local",
-  AWS_SECRET_ACCESS_KEY: "local", //pragma: allowlist secret
-};
+path.join(__dirname, "./MockConfigFile.json");
+fs.readFileSync(STATE_MACHINE_FILE).toString();
+fs.readFileSync(EVENT_FILE).toString();

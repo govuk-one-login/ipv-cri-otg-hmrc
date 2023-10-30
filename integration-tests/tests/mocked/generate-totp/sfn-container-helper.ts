@@ -8,7 +8,7 @@ import {
   SFNClient,
   StartExecutionCommand,
   StartExecutionCommandOutput,
-  StateMachineType,
+  StateMachineType
 } from "@aws-sdk/client-sfn";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { StepFunctionConstants } from "./sfn-constants";
@@ -22,7 +22,7 @@ enum ExecutionStatus {
 
 export class SfnContainerHelper {
   private sfnClient: Promise<SFNClient>;
-  private composeEnvironment: Promise<StartedTestContainer>;
+  private readonly composeEnvironment: Promise<StartedTestContainer>;
 
   constructor() {
     this.composeEnvironment = this.createTestContainer();
@@ -31,7 +31,7 @@ export class SfnContainerHelper {
 
   public async getContainer(): Promise<StartedTestContainer> {
     const container = await this.composeEnvironment;
-    this.copyFileToContainer(container);
+    await this.copyFileToContainer(container);
     return container;
   }
 
@@ -132,7 +132,7 @@ export class SfnContainerHelper {
   }
 
   private async createStateMachine(): Promise<CreateStateMachineCommandOutput> {
-    const createStateMachineResponse = await (
+    return await (
       await this.sfnClient
     ).send(
       new CreateStateMachineCommand({
@@ -143,7 +143,6 @@ export class SfnContainerHelper {
         type: StateMachineType.STANDARD,
       })
     );
-    return createStateMachineResponse;
   }
 
   private async untilExecutionCompletes(
