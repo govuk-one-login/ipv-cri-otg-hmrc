@@ -12,18 +12,23 @@ Globals:
 Parameters:
   TotpSecretName:
     Type: String
+    Default: "TotpSecretName"
 
   ClientSecretName:
     Type: String
+    Default: "HMRC_Client_Secret"
 
   BearerTokenSecretName:
     Type: String
+    Default: "HMRCBearerToken"
 
   ClientId:
     Type: String
+    Default: "HMRC_Client_Id"
 
   OAuthUrl:
     Type: String
+    Default: "https://test-api.service.hmrc.gov.uk/oauth/token"
 
 Resources:
   OAuthUrlParameter:
