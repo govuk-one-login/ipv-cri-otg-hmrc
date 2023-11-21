@@ -6,7 +6,7 @@ Globals:
   Function:
     VpcConfig:
       SecurityGroupIds:
-        - !ImportValue cri-vpc-AWSServicesEndpointSecurityGroupId
+        - !ImportValue otg-vpc-AWSServicesEndpointSecurityGroupId
       SubnetIds:
         [
           !ImportValue otg-vpc-ProtectedSubnetIdA,
