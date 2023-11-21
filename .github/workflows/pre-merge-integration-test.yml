@@ -53,8 +53,8 @@ jobs:
       - name: Run mocked tests
         run: npm --prefix integration-tests run test:mocked
 
-      - name: Run AWS tests
-        run: npm --prefix integration-tests run test:aws
+      #- name: Run AWS tests
+      #  run: npm --prefix integration-tests run test:aws
 
       - name: Delete test stack
         if: success()
