@@ -4,12 +4,54 @@ Description: "Digital Identity IPV CRI Otg-Hmrc API"
 
 Globals:
   Function:
+    VpcConfig:
+      SecurityGroupIds:
+        - !ImportValue otg-vpc-AWSServicesEndpointSecurityGroupId
+      SubnetIds:
+        [
+          !ImportValue otg-vpc-ProtectedSubnetIdA,
+          !ImportValue otg-vpc-ProtectedSubnetIdB,
+        ]
     Runtime: nodejs18.x
     Architectures:
       - arm64
-    Timeout: 3
+    Timeout: 30
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+    CodeSigningConfigArn: !If
+      - EnforceCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
 
 Parameters:
+  CodeSigningEnabled:
+    Type: "String"
+    Default: "true"
+
+  CodeSigningConfigArn:
+    Type: String
+    Default: "none"
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+
+  PermissionsBoundary:
+    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
+    Type: String
+    Default: "none"
+
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+    ConstraintDescription: must be dev, build, staging, integration or production
+
   TotpSecretName:
     Type: String
     Default: "TotpSecretName"
@@ -29,6 +71,17 @@ Parameters:
   OAuthUrl:
     Type: String
     Default: "https://test-api.service.hmrc.gov.uk/oauth/token"
+
+Conditions:
+  EnforceCodeSigning: !Equals
+    - !Ref CodeSigningEnabled
+    - true
+
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
 
 Resources:
   OAuthUrlParameter:
@@ -117,6 +170,10 @@ Resources:
               Action:
                 - ssm:PutParameter
               Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${BearerTokenExpiry}
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
 Outputs:
   BearerTokenHandlerFunctionURLEndpoint:
