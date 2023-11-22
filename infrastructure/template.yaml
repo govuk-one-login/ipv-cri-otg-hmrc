@@ -176,27 +176,26 @@ Resources:
         - !Ref AWS::NoValue
 
 Outputs:
-  BearerTokenHandlerFunctionURLEndpoint:
-    Description: FURLFunction function name
-    Value: !GetAtt BearerTokenHandlerFunctionUrl.FunctionUrl
   BearerTokenHandlerFunction:
     Description: "BearerTokenHandler Lambda Function ARN"
     Value: !GetAtt BearerTokenHandlerFunction.Arn
+
   BearerTokenHandlerFunctionIamRole:
     Description: "Implicit IAM Role created for BearerTokenHandler function"
     Value: !GetAtt BearerTokenHandlerFunctionRole.Arn
+
   OAuthTokenStateMachineArn:
     Description: Otg state machine ARN
     Value: !Ref OAuthTokenStateMachine
+
   OAuthTokenStateMachineRole:
     Description: "IAM Role created for OAuth token state machine based on the specified"
     Value: !GetAtt OAuthTokenStateMachineRole.Arn
-  TotpGeneratorFunctionURLEndpoint:
-    Description: FURLFunction function name
-    Value: !GetAtt TotpGeneratorFunctionUrl.FunctionUrl
+
   TotpGeneratorFunction:
     Description: "TotpGenerator Lambda Function ARN"
     Value: !GetAtt TotpGeneratorFunction.Arn
+
   TotpGeneratorFunctionIamRole:
     Description: "Implicit IAM Role created for TotpGenerator function"
     Value: !GetAtt TotpGeneratorFunctionRole.Arn
