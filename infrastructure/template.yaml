@@ -102,10 +102,6 @@ Resources:
     Properties:
       CodeUri: ../lambdas/bearer-token-handler
       Handler: bearer-token-handler.lambdaHandler
-      FunctionUrlConfig:
-        AuthType: AWS_IAM
-        Cors:
-          AllowOrigins: ["*"]
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -120,10 +116,6 @@ Resources:
     Properties:
       CodeUri: ../lambdas/totp-generator
       Handler: totp-generator-handler.lambdaHandler
-      FunctionUrlConfig:
-        AuthType: AWS_IAM
-        Cors:
-          AllowOrigins: ["*"]
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
