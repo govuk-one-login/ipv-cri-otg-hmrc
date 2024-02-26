@@ -3,7 +3,7 @@ import { SfnContainerHelper } from "./sfn-container-helper";
 
 jest.setTimeout(30_000);
 
-describe("generate-totp-unhappy", () => {
+describe("generate-totp-happy", () => {
   let sfnContainer: SfnContainerHelper;
 
   beforeAll(async () => {
