@@ -1,21 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Description: Digital Identity IPV CRI OTG-HMRC API
 Transform: AWS::Serverless-2016-10-31
-Description: "Digital Identity IPV CRI Otg-Hmrc API"
 
 Globals:
   Function:
+    Timeout: 30
+    CodeUri: ..
+    Runtime: nodejs18.x
+    Architectures: [arm64]
     VpcConfig:
       SecurityGroupIds:
         - !ImportValue otg-vpc-AWSServicesEndpointSecurityGroupId
       SubnetIds:
-        [
-          !ImportValue otg-vpc-ProtectedSubnetIdA,
-          !ImportValue otg-vpc-ProtectedSubnetIdB,
-        ]
-    Runtime: nodejs18.x
-    Architectures:
-      - arm64
-    Timeout: 30
+        - !ImportValue otg-vpc-ProtectedSubnetIdA
+        - !ImportValue otg-vpc-ProtectedSubnetIdB
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -24,59 +22,30 @@ Globals:
       - EnforceCodeSigning
       - !Ref CodeSigningConfigArn
       - !Ref AWS::NoValue
-    Environment:
-      Variables:
-        AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
-        DT_CONNECTION_AUTH_TOKEN: !Sub
-          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}"
-          - SecretArn:
-              !FindInMap [
-                EnvironmentConfiguration,
-                !Ref Environment,
-                dynatraceSecretArn,
-              ]
-        DT_CONNECTION_BASE_URL: !Sub
-          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}"
-          - SecretArn:
-              !FindInMap [
-                EnvironmentConfiguration,
-                !Ref Environment,
-                dynatraceSecretArn,
-              ]
-        DT_CLUSTER_ID: !Sub
-          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}"
-          - SecretArn:
-              !FindInMap [
-                EnvironmentConfiguration,
-                !Ref Environment,
-                dynatraceSecretArn,
-              ]
-        DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
-          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}"
-          - SecretArn:
-              !FindInMap [
-                EnvironmentConfiguration,
-                !Ref Environment,
-                dynatraceSecretArn,
-              ]
-        DT_TENANT: !Sub
-          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}"
-          - SecretArn:
-              !FindInMap [
-                EnvironmentConfiguration,
-                !Ref Environment,
-                dynatraceSecretArn,
-              ]
-        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
     Layers:
       - !Sub
         - "{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}"
-        - SecretArn:
-            !FindInMap [
-              EnvironmentConfiguration,
-              !Ref Environment,
-              dynatraceSecretArn,
-            ]
+        - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+    Environment:
+      Variables:
+        NODE_OPTIONS: --enable-source-maps
+        AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
+        DT_CONNECTION_AUTH_TOKEN: !Sub
+          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}"
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+        DT_CONNECTION_BASE_URL: !Sub
+          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}"
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+        DT_CLUSTER_ID: !Sub
+          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}"
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+        DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
+          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}"
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+        DT_TENANT: !Sub
+          - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}"
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
 
 Parameters:
   CodeSigningEnabled:
@@ -126,18 +95,13 @@ Parameters:
     Default: "https://test-api.service.hmrc.gov.uk/oauth/token"
 
 Mappings:
-  # Adding Dynatrace Lambda layer
-  EnvironmentConfiguration:
-    dev:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    build:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    staging:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    integration:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    production:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+  Dynatrace:
+    SecretArn:
+      dev: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      build: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      staging: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      integration: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      production: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
 Conditions:
   EnforceCodeSigning: !Equals
@@ -166,31 +130,21 @@ Resources:
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ../lambdas/bearer-token-handler
-      Handler: bearer-token-handler.lambdaHandler
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
-        Minify: true
-        Target: "es2020"
         Sourcemap: true
-        EntryPoints:
-          - src/bearer-token-handler.ts
+    Properties:
+      Handler: lambdas/bearer-token-handler/src/bearer-token-handler.ts
 
   TotpGeneratorFunction:
     Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ../lambdas/totp-generator
-      Handler: totp-generator-handler.lambdaHandler
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
-        Minify: true
-        Target: "es2020"
         Sourcemap: true
-        EntryPoints:
-          - src/totp-generator-handler.ts
+    Properties:
+      Handler: lambdas/totp-generator/src/totp-generator-handler.ts
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -244,11 +198,11 @@ Outputs:
     Value: !GetAtt BearerTokenHandlerFunctionRole.Arn
 
   OAuthTokenStateMachineArn:
-    Description: Otg state machine ARN
+    Description: OTG state machine ARN
     Value: !Ref OAuthTokenStateMachine
 
   OAuthTokenStateMachineRole:
-    Description: "IAM Role created for OAuth token state machine based on the specified"
+    Description: "Implicit IAM Role created for OAuth token state machine"
     Value: !GetAtt OAuthTokenStateMachineRole.Arn
 
   TotpGeneratorFunction:
