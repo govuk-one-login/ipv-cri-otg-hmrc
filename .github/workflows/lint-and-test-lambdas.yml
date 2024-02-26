@@ -19,7 +19,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include-workspace-root
         working-directory: lambdas/${{ matrix.lambda }}
 
       - name: Lint

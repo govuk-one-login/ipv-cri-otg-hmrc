@@ -42,7 +42,7 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/template.yaml
 
       - name: Install dependencies
-        run: npm --prefix integration-tests install
+        run: npm ci --include-workspace-root
 
       - name: sam build
         run: sam build -t infrastructure/template.yaml
