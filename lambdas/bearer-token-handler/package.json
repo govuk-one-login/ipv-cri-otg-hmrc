@@ -1,8 +1,8 @@
 {
   "name": "bearer-token-generator",
   "scripts": {
-    "lint:prettier-fix": "pre-commit run prettier --all-files",
-    "lint:eslint": "eslint .",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
     "unit": "jest --silent",
     "test": "npm run unit --",
     "test:coverage": "npm run unit -- --coverage"
