@@ -2,26 +2,60 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Digital Identity IPV CRI OTG-HMRC API
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  TotpSecretName:
+    Type: String
+    Default: TotpSecretName
+  ClientSecretName:
+    Type: String
+    Default: HMRC_Client_Secret
+  ClientId:
+    Type: String
+    Default: HMRC_Client_Id
+  OAuthUrl:
+    Type: String
+    Default: https://test-api.service.hmrc.gov.uk/oauth/token
+  BearerTokenName:
+    Type: String
+    Default: HMRCBearerToken
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, build, staging, integration, production]
+  CodeSigningConfigArn:
+    Type: String
+    Default: ""
+  PermissionsBoundary:
+    Type: String
+    Default: ""
+
+Conditions:
+  EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
+  UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
+
+Mappings:
+  Dynatrace:
+    SecretArn:
+      dev: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      build: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      staging: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      integration: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      production: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+
 Globals:
   Function:
     Timeout: 30
     CodeUri: ..
     Runtime: nodejs18.x
     Architectures: [arm64]
+    PermissionsBoundary:
+      !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
     VpcConfig:
       SecurityGroupIds:
         - !ImportValue otg-vpc-AWSServicesEndpointSecurityGroupId
       SubnetIds:
         - !ImportValue otg-vpc-ProtectedSubnetIdA
         - !ImportValue otg-vpc-ProtectedSubnetIdB
-    PermissionsBoundary: !If
-      - UsePermissionsBoundary
-      - !Ref PermissionsBoundary
-      - !Ref AWS::NoValue
-    CodeSigningConfigArn: !If
-      - EnforceCodeSigning
-      - !Ref CodeSigningConfigArn
-      - !Ref AWS::NoValue
     Layers:
       - !Sub
         - "{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}"
@@ -47,73 +81,6 @@ Globals:
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
 
-Parameters:
-  CodeSigningEnabled:
-    Type: "String"
-    Default: "true"
-
-  CodeSigningConfigArn:
-    Type: String
-    Default: "none"
-    Description: >
-      The ARN of the Code Signing Config to use, provided by the deployment pipeline
-
-  PermissionsBoundary:
-    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
-    Type: String
-    Default: "none"
-
-  Environment:
-    Description: "The environment type"
-    Type: "String"
-    AllowedValues:
-      - "dev"
-      - "build"
-      - "staging"
-      - "integration"
-      - "production"
-    ConstraintDescription: must be dev, build, staging, integration or production
-
-  TotpSecretName:
-    Type: String
-    Default: "TotpSecretName"
-
-  ClientSecretName:
-    Type: String
-    Default: "HMRC_Client_Secret"
-
-  BearerTokenSecretName:
-    Type: String
-    Default: "HMRCBearerToken"
-
-  ClientId:
-    Type: String
-    Default: "HMRC_Client_Id"
-
-  OAuthUrl:
-    Type: String
-    Default: "https://test-api.service.hmrc.gov.uk/oauth/token"
-
-Mappings:
-  Dynatrace:
-    SecretArn:
-      dev: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-      build: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-      staging: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-      integration: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-      production: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
-
-Conditions:
-  EnforceCodeSigning: !Equals
-    - !Ref CodeSigningEnabled
-    - true
-
-  UsePermissionsBoundary:
-    Fn::Not:
-      - Fn::Equals:
-          - !Ref PermissionsBoundary
-          - "none"
-
 Resources:
   OAuthUrlParameter:
     Type: AWS::SSM::Parameter
@@ -136,6 +103,8 @@ Resources:
         Sourcemap: true
     Properties:
       Handler: lambdas/bearer-token-handler/src/bearer-token-handler.ts
+      CodeSigningConfigArn:
+        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
 
   TotpGeneratorFunction:
     Type: AWS::Serverless::Function
@@ -145,6 +114,8 @@ Resources:
         Sourcemap: true
     Properties:
       Handler: lambdas/totp-generator/src/totp-generator-handler.ts
+      CodeSigningConfigArn:
+        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -154,7 +125,7 @@ Resources:
       DefinitionSubstitutions:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
-        BearerTokenSecretName: !Ref BearerTokenSecretName
+        BearerTokenName: !Ref BearerTokenName
         OAuthUrlParameter: !Ref OAuthUrlParameter
         BearerTokenExpiry: !Ref BearerTokenExpiry
         ClientSecretName: !Ref ClientSecretName
@@ -177,7 +148,7 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:PutSecretValue
-              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${BearerTokenSecretName}-??????
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${BearerTokenName}-??????
         - Statement:
             - Effect: Allow
               Action:
@@ -189,26 +160,6 @@ Resources:
         - !Ref AWS::NoValue
 
 Outputs:
-  BearerTokenHandlerFunction:
-    Description: "BearerTokenHandler Lambda Function ARN"
-    Value: !GetAtt BearerTokenHandlerFunction.Arn
-
-  BearerTokenHandlerFunctionIamRole:
-    Description: "Implicit IAM Role created for BearerTokenHandler function"
-    Value: !GetAtt BearerTokenHandlerFunctionRole.Arn
-
   OAuthTokenStateMachineArn:
     Description: OTG state machine ARN
     Value: !Ref OAuthTokenStateMachine
-
-  OAuthTokenStateMachineRole:
-    Description: "Implicit IAM Role created for OAuth token state machine"
-    Value: !GetAtt OAuthTokenStateMachineRole.Arn
-
-  TotpGeneratorFunction:
-    Description: "TotpGenerator Lambda Function ARN"
-    Value: !GetAtt TotpGeneratorFunction.Arn
-
-  TotpGeneratorFunctionIamRole:
-    Description: "Implicit IAM Role created for TotpGenerator function"
-    Value: !GetAtt TotpGeneratorFunctionRole.Arn
