@@ -3,12 +3,8 @@
   "scripts": {
     "lint:prettier-fix": "pre-commit run prettier --all-files",
     "lint:eslint": "eslint ..",
-    "unit:all": "jest --config=jest.config.ts",
-    "unit:aws": "jest --config=jest.config-aws.ts",
-    "unit:mocked": "jest --config=jest.config-mocked.ts",
-    "test:all": "npm run unit:all",
-    "test:aws": "npm run unit:aws",
-    "test:mocked": "npm run unit:mocked"
+    "test": "npm run test:mocked --",
+    "test:mocked": "jest --silent --select-projects integration-tests/mocked"
   },
   "dependencies": {},
   "devDependencies": {

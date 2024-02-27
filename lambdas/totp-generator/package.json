@@ -4,7 +4,8 @@
     "lint:prettier-fix": "pre-commit run prettier --all-files",
     "lint:eslint": "eslint .",
     "unit": "jest --silent",
-    "test": "npm run unit --"
+    "test": "npm run unit --",
+    "test:coverage": "npm run unit -- --coverage"
   },
   "dependencies": {
     "totp-generator": "0.0.14",

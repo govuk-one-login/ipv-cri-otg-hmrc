@@ -51,7 +51,8 @@ jobs:
         run: sam deploy --config-file infrastructure/samconfig.toml --stack-name ${{ env.STACK_NAME }}
 
       - name: Run mocked tests
-        run: npm --prefix integration-tests run test:mocked
+        working-directory: integration-tests
+        run: npm run test
 
       #- name: Run AWS tests
       #  run: npm --prefix integration-tests run test:aws
