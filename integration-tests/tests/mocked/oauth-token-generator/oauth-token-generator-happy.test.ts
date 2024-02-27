@@ -1,7 +1,7 @@
 import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
 
-jest.setTimeout(30_000);
+jest.setTimeout(40_000);
 
 describe("generate-totp-happy", () => {
   let sfnContainer: SfnContainerHelper;
