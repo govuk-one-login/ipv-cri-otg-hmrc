@@ -1,0 +1,22 @@
+name: Mocked tests
+
+on:
+  workflow_call:
+
+concurrency:
+  group: mocked-tests-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  run-tests:
+    name: Mocked
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        uses: govuk-one-login/github-actions/node/run-script@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        with:
+          working-directory: integration-tests
+          script: npm run test:mocked -- --config jest.config.ci.ts

@@ -12,28 +12,26 @@ concurrency:
   group: scan-repo-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
-permissions: {}
+permissions: read-all
 
 jobs:
-  coverage:
-    name: Collect coverage
-    if: ${{ github.event_name != 'pull_request' }}
+  unit-tests:
+    name: Test coverage
     uses: ./.github/workflows/run-unit-tests.yml
     with:
       coverage-report: true
 
   sonarcloud:
     name: SonarCloud
-    needs: coverage
+    needs: unit-tests
     runs-on: ubuntu-latest
-    if: ${{ success() || needs.coverage.result == 'skipped' }}
     steps:
       - name: Run SonarCloud scan
         uses: govuk-one-login/github-actions/code-quality/sonarcloud@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
         with:
-          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          coverage-artifact: ${{ needs.unit-tests.outputs.coverage-artifact }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          coverage-artifact: ${{ needs.coverage.outputs.coverage-artifact || 'coverage' }}
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
 
   codeql:
     name: CodeQL
