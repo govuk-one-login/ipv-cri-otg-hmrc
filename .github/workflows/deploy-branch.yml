@@ -1,0 +1,68 @@
+name: Preview
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      stack-name:
+        description: The deployed stack name
+        value: ${{ jobs.deploy.outputs.stack-name }}
+      aws-region:
+        description: The region in which the stack was deployed
+        value: ${{ jobs.deploy.outputs.aws-region }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build SAM app
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      cache-key: ${{ steps.build.outputs.cache-key }}
+      cache-restore-keys: ${{ steps.build.outputs.cache-restore-keys }}
+    steps:
+      - name: Build SAM application
+        uses: govuk-one-login/github-actions/sam/build-application@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        id: build
+        with:
+          template: infrastructure/template.yaml
+          cache-name: otg-hmrc
+          pull-repository: true
+          source-dir: lambdas
+
+  deploy:
+    name: Deploy stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    concurrency:
+      group: deploy-development-${{ github.head_ref || github.ref_name }}
+    environment:
+      name: development
+      url: ${{ steps.deploy.outputs.stack-url }}
+    outputs:
+      aws-region: ${{ steps.deploy.outputs.aws-region }}
+      stack-name: ${{ steps.deploy.outputs.stack-name }}
+    steps:
+      - name: Deploy stack
+        uses: govuk-one-login/github-actions/sam/deploy-stack@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        id: deploy
+        with:
+          sam-deployment-bucket: ${{ vars.DEPLOYMENT_ARTIFACTS_BUCKET }}
+          aws-role-arn: ${{ vars.DEPLOYMENT_ROLE_ARN }}
+          stack-name-prefix: preview-otg-hmrc
+          cache-key: ${{ needs.build.outputs.cache-key }}
+          cache-restore-keys: ${{ needs.build.outputs.cache-restore-keys }}
+          s3-prefix: preview
+          pull-repository: true
+          delete-failed-stack: true
+          tags: |
+            cri:component=ipv-cri-otg-hmrc
+            cri:stack-type=preview
+            cri:application=Orange
+            cri:deployment-source=github-actions
+          parameters: |
+            Environment=dev

@@ -1,0 +1,34 @@
+name: Unit tests
+
+on:
+  workflow_call:
+    inputs:
+      coverage-report: { type: boolean, required: false, default: false }
+      coverage-artifact: { type: string, required: false, default: coverage }
+    outputs:
+      coverage-artifact:
+        value: ${{ inputs.coverage-artifact }}
+
+concurrency:
+  group: unit-tests-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  run-tests:
+    name: Unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        uses: govuk-one-login/github-actions/node/run-script@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        with:
+          script: npm run test:coverage -- --config .github/jest.config.ci.ts
+
+      - name: Archive coverage results
+        if: ${{ inputs.coverage-report }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.coverage-artifact }}
+          retention-days: 3
+          path: coverage/lcov.info
