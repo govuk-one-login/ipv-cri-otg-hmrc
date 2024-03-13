@@ -1,0 +1,62 @@
+openapi: "3.0.1"
+info:
+  title: "HMRC OAuth Token Generator Private Api"
+  version: "1.0"
+
+paths:
+  /token:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/token"
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+        500:
+          description: Internal Server Error
+      x-amazon-apigateway-integration:
+        httpMethod: "GET"
+        passthroughBehavior: "when_no_templates"
+        type: "aws"
+        credentials:
+          Fn::Sub: ${ExecuteStateMachineRole.Arn}
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:states:action/StartSyncExecution
+        requestTemplates:
+          application/json:
+            Fn::Sub: |-
+              {
+                "input": "{\"tokenType\": \"$input.params('tokenType').trim()\"}",
+                "stateMachineArn": "${BearerTokenRetrievalStateMachine.Arn}"
+              }
+        responses:
+          default:
+            statusCode: 200
+            responseTemplates:
+              application/json: |
+                #set($response = $util.parseJson($input.body))
+                $response.output
+
+components:
+  parameters:
+    token:
+      name: "tokenType"
+      description: "The token to retrieve e.g. production, sandbox, stub"
+      in: query
+      required: true
+      schema:
+        type: string
+      example:
+        imposter:
+          value: stub
+
+x-amazon-apigateway-request-validators:
+  Validate both:
+    validateRequestBody: true
+    validateRequestParameters: true
+  Validate Param only:
+    validateRequestParameters: true
+    validateRequestBody: false
