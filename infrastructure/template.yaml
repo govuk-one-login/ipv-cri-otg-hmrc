@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Digital Identity IPV CRI OTG-HMRC API
-Transform: AWS::Serverless-2016-10-31
+Transform: [AWS::LanguageExtensions, AWS::Serverless-2016-10-31]
 
 Parameters:
   TotpSecretName:
@@ -32,6 +32,10 @@ Parameters:
 Conditions:
   EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
+  IsDevEnvironment: !Equals [!Ref Environment, dev]
+  IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
+  IsDevLikeEnvironment:
+    !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
 
 Mappings:
   Dynatrace:
@@ -94,6 +98,63 @@ Resources:
     Properties:
       Type: String
       Value: AWS::NoValue
+
+  PrivateOTGApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: Private OAuth Token Generator API
+      MethodSettings:
+        - LoggingLevel: INFO
+          ResourcePath: "/*"
+          HttpMethod: "*"
+          DataTraceEnabled: true
+          MetricsEnabled: true
+          ThrottlingRateLimit: 200
+          ThrottlingBurstLimit: 400
+      AccessLogSetting:
+        DestinationArn: !GetAtt PrivateOTGApiAccessLogGroup.Arn
+        Format:
+          Fn::ToJsonString:
+            requestId: $context.requestId
+            ip: $context.identity.sourceIp
+            requestTime: $context.requestTime
+            httpMethod: $context.httpMethod
+            path: $context.path
+            routeKey: $context.routeKey
+            status: $context.status
+            protocol: $context.protocol
+            responseLatency: $context.responseLatency
+            responseLength: $context.responseLength
+      TracingEnabled: true
+      Name: !Sub ${AWS::StackName}-private
+      StageName: !Ref Environment
+      DefinitionBody:
+        openapi: 3.0.1
+        paths:
+          /never-created:
+            options: {}
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: private-api.yaml
+      OpenApiVersion: 3.0.1
+      EndpointConfiguration:
+        Type: !If [IsLocalDevEnvironment, REGIONAL, PRIVATE]
+      Auth:
+        ResourcePolicy: !If
+          - IsLocalDevEnvironment
+          - !Ref AWS::NoValue
+          - CustomStatements:
+              - Effect: Allow
+                Resource: execute-api:/*
+                Action: execute-api:Invoke
+                Principal: "*"
+
+  PrivateOTGApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs
+      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
@@ -159,7 +220,68 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
+  BearerTokenRetrievalStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: EXPRESS
+      Name: !Sub "${AWS::StackName}-BearerTokenRetrieval"
+      DefinitionUri: ../step-functions/bearer-token-retrieval.asl.json
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt BearerTokenRetrievalStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRCBearerToken/*
+        - Statement:
+            Effect: Allow
+            Action: logs:*
+            Resource: "*"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  BearerTokenRetrievalStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrievalStateMachine-state-machine-logs
+      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+
+  ExecuteStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Role to allow API gateway to execute step function
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: apigateway.amazonaws.com
+      Policies:
+        - PolicyName: AllowStateMachineInvoke
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: !Ref BearerTokenRetrievalStateMachine
+                Action:
+                  - states:StartExecution
+                  - states:StartSyncExecution
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
 Outputs:
+  PrivateApiGatewayId:
+    Description: Private API Gateway ID for OAuth Token Generator
+    Value: !Ref PrivateOTGApi
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateApiGatewayId
   OAuthTokenStateMachineArn:
     Description: OTG state machine ARN
     Value: !Ref OAuthTokenStateMachine
