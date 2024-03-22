@@ -15,7 +15,7 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
-        "FunctionName": "arn:aws:lambda:eu-west-2:366077495114:function:preview-otg-hmrc-oj-2455-fix-TotpGeneratorFunction-cRx7sNoPB4PM",
+        "FunctionName": "${TotpGeneratorFunctionArn}",
         "Payload": {
           "SecretString.$": "$.totpSecret.SecretString"
         }
