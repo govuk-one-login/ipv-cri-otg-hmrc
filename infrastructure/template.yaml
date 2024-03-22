@@ -36,6 +36,9 @@ Conditions:
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
   IsDevLikeEnvironment:
     !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsProdEnvironment: !Equals
+    - !Ref Environment
+    - production
 
 Mappings:
   Dynatrace:
@@ -154,7 +157,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
@@ -173,7 +176,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   TotpGeneratorFunction:
     Type: AWS::Serverless::Function
