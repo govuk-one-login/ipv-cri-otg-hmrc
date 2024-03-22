@@ -63,7 +63,7 @@ Globals:
     Layers:
       - !Sub
         - "{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}"
-        - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+        - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
     Environment:
       Variables:
         NODE_OPTIONS: --enable-source-maps
@@ -71,19 +71,19 @@ Globals:
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: true
         DT_CONNECTION_AUTH_TOKEN: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}"
-          - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
         DT_CONNECTION_BASE_URL: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}"
-          - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
         DT_CLUSTER_ID: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}"
-          - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
         DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}"
-          - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
         DT_TENANT: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}"
-          - SecretArn: !FindInMap [ Dynatrace, SecretArn, !Ref Environment ]
+          - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
 
 Resources:
   OAuthUrlParameter:
