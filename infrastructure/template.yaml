@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Digital Identity IPV CRI OTG-HMRC API
+Description: Digital Identity IPV HMRC OAuth Token Generator
 Transform: [AWS::LanguageExtensions, AWS::Serverless-2016-10-31]
 
 Parameters:
@@ -36,6 +36,9 @@ Conditions:
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
   IsDevLikeEnvironment:
     !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsProdEnvironment: !Equals
+    - !Ref Environment
+    - production
 
 Mappings:
   Dynatrace:
@@ -68,6 +71,7 @@ Globals:
       Variables:
         NODE_OPTIONS: --enable-source-maps
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
+        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: true
         DT_CONNECTION_AUTH_TOKEN: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}"
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
@@ -83,7 +87,6 @@ Globals:
         DT_TENANT: !Sub
           - "{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}"
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
-        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
 
 Resources:
   OAuthUrlParameter:
@@ -91,7 +94,7 @@ Resources:
     Properties:
       Type: String
       Value: !Ref OAuthUrl
-      Description: HMRC OAuth Url
+      Description: HMRC OAuth URL
 
   BearerTokenExpiry:
     Type: AWS::SSM::Parameter
@@ -154,7 +157,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
@@ -163,9 +166,17 @@ Resources:
       BuildProperties:
         Sourcemap: true
     Properties:
-      Handler: lambdas/bearer-token-handler/src/bearer-token-handler.ts
+      Handler: lambdas/bearer-token-handler/src/bearer-token-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
       CodeSigningConfigArn:
         !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+
+  BearerTokenHandlerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   TotpGeneratorFunction:
     Type: AWS::Serverless::Function
@@ -174,9 +185,17 @@ Resources:
       BuildProperties:
         Sourcemap: true
     Properties:
-      Handler: lambdas/totp-generator/src/totp-generator-handler.ts
+      Handler: lambdas/totp-generator/src/totp-generator-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
       CodeSigningConfigArn:
         !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+
+  TotpGeneratorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
+      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine

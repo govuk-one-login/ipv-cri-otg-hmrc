@@ -1,29 +1,24 @@
 {
   "Comment": "HMRC OAuth Token Generator StateMachine",
-  "StartAt": "Get Totp Secret",
+  "StartAt": "Fetch TOTP Secret",
   "States": {
-    "Get Totp Secret": {
+    "Fetch TOTP Secret": {
       "Type": "Task",
-      "Next": "Lambda Invoke Generate TOTP Code",
+      "Next": "Generate TOTP Code",
       "Parameters": {
         "SecretId": "${TotpSecretName}"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Fetching TOTP Secret",
-          "Comment": "TOTP secret error"
-        }
-      ]
+      "ResultPath": "$.totpSecret"
     },
-    "Lambda Invoke Generate TOTP Code": {
+    "Generate TOTP Code": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$.Payload",
       "Parameters": {
-        "Payload.$": "$",
-        "FunctionName": "${TotpGeneratorFunctionArn}"
+        "FunctionName": "arn:aws:lambda:eu-west-2:366077495114:function:preview-otg-hmrc-oj-2455-fix-TotpGeneratorFunction-cRx7sNoPB4PM",
+        "Payload": {
+          "SecretString.$": "$.totpSecret.SecretString"
+        }
       },
       "Retry": [
         {
@@ -38,166 +33,86 @@
           "BackoffRate": 2
         }
       ],
-      "Next": "Get Client Id",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Generating TOTP Code"
-        }
-      ]
+      "Next": "Fetch HMRC Client Id",
+      "ResultSelector": {
+        "totpCode.$": "$.Payload.totp"
+      }
     },
-    "Get Client Id": {
+    "Fetch HMRC Client Id": {
       "Type": "Task",
-      "Next": "Get Client Secret",
+      "Next": "Fetch HMRC Client Secret",
       "Parameters": {
         "SecretId": "${ClientId}"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-      "ResultPath": "$.clientId",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Fetching Client Id"
-        }
-      ],
-      "ResultSelector": {
-        "value.$": "$.SecretString"
-      }
+      "ResultPath": "$.clientId"
     },
-    "Get Client Secret": {
+    "Fetch HMRC Client Secret": {
       "Type": "Task",
-      "Next": "Get OAuth URL",
+      "Next": "Fetch HMRC OAuth URL",
       "Parameters": {
         "SecretId": "${ClientSecretName}"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Fetching Client Secret"
-        }
-      ],
-      "ResultPath": "$.clientSecret",
-      "ResultSelector": {
-        "value.$": "$.SecretString"
-      }
+      "ResultPath": "$.clientSecret"
     },
-    "Error: Fetching Client Secret": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Get OAuth URL": {
+    "Fetch HMRC OAuth URL": {
       "Type": "Task",
-      "Next": "Lambda Invoke Generate OAuth Access Token",
+      "Next": "Invoke HMRC OAuth Token API",
       "Parameters": {
         "Name": "${OAuthUrlParameter}"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Fetching OAuth URL"
-        }
-      ],
       "ResultSelector": {
         "value.$": "$.Parameter.Value"
       },
       "ResultPath": "$.oAuthURL"
     },
-    "Error: Fetching OAuth URL": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Error: Fetching Client Id": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Lambda Invoke Generate OAuth Access Token": {
+    "Invoke HMRC OAuth Token API": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "OutputPath": "$",
       "Parameters": {
-        "Payload.$": "$",
-        "FunctionName": "${BearerTokenFunctionArn}"
+        "FunctionName": "${BearerTokenFunctionArn}",
+        "Payload": {
+          "totp.$": "$.totpCode",
+          "clientSecret": {
+            "value.$": "$.clientSecret.SecretString"
+          },
+          "clientId": {
+            "value.$": "$.clientId.SecretString"
+          },
+          "oAuthURL": {
+            "value.$": "$.oAuthURL.value"
+          }
+        }
       },
       "Retry": [
         {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
+          "ErrorEquals": ["States.ALL"],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
         }
       ],
-      "Next": "Parallel",
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Generating Bearer Token"
-        }
-      ]
+      "Next": "Store Bearer Token",
+      "ResultSelector": {
+        "token.$": "$.Payload.token",
+        "expiry.$": "$.Payload.tokenExpiry"
+      }
     },
-    "Parallel": {
-      "Type": "Parallel",
-      "Branches": [
-        {
-          "StartAt": "Put OauthAccessTokenExpiry",
-          "States": {
-            "Put OauthAccessTokenExpiry": {
-              "Type": "Task",
-              "End": true,
-              "Parameters": {
-                "Name": "${BearerTokenExpiry}",
-                "Value.$": "$.Payload.tokenExpiry",
-                "Overwrite": "true"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:ssm:putParameter"
-            }
-          }
-        },
-        {
-          "StartAt": "Put OAuthAccessToken",
-          "States": {
-            "Put OAuthAccessToken": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId": "${BearerTokenSecretName}",
-                "SecretString.$": "$.Payload.token"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
-              "ResultPath": null,
-              "End": true
-            }
-          }
-        }
-      ],
-      "End": true,
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Error: Storing BearerToken"
-        }
-      ]
+    "Store Bearer Token": {
+      "Type": "Task",
+      "Parameters": {
+        "SecretId": "${BearerTokenName}",
+        "SecretString.$": "$"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
+      "Next": "Success",
+      "ResultSelector": {}
     },
-    "Error: Generating TOTP Code": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Error: Fetching TOTP Secret": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Error: Generating Bearer Token": {
-      "Type": "Pass",
-      "End": true
-    },
-    "Error: Storing BearerToken": {
-      "Type": "Pass",
-      "End": true
+    "Success": {
+      "Type": "Succeed"
     }
   }
 }

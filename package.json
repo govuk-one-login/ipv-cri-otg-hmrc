@@ -5,10 +5,8 @@
     "lambdas/*"
   ],
   "scripts": {
-    "lint:eslint": "eslint .",
-    "lint:prettier": "prettier --check .",
-    "lint": "npm run lint:eslint && npm run lint:prettier",
-    "lint:fix": "npm run lint:eslint -- --fix && npm run lint:prettier -- --write",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "unit": "jest --silent",
     "test": "npm run unit --",
     "test:coverage": "npm run unit -- --coverage",

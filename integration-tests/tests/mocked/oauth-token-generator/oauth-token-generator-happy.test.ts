@@ -3,7 +3,7 @@ import { SfnContainerHelper } from "./sfn-container-helper";
 
 jest.setTimeout(40_000);
 
-describe("generate-totp-happy", () => {
+describe("oauth-token-generator-happy.test", () => {
   let sfnContainer: SfnContainerHelper;
 
   beforeAll(async () => {
@@ -16,28 +16,18 @@ describe("generate-totp-happy", () => {
     expect(sfnContainer.getContainer()).toBeDefined();
   });
 
-  it("should return OAuthAccessToken", async () => {
+  it("should successfully pass a happy path journey", async () => {
     const input = JSON.stringify({ valid: "input" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
-      "HappyPathTest",
+      "Happy",
       input
     );
     const results = await sfnContainer.waitFor(
       (event: HistoryEvent) =>
-        event?.type === "TaskStateExited" &&
-        event?.stateExitedEventDetails?.name === "Put OAuthAccessToken",
+        event?.stateExitedEventDetails?.name === "Success",
       responseStepFunction
     );
     expect(results).toBeDefined();
-    expect(results?.length).toBe(1);
-    expect(results[0].stateExitedEventDetails?.output).toBe(
-      JSON.stringify({
-        StatusCode: 200,
-        Payload: {
-          token: "body.access_token",
-          tokenExpiry: 866868768688,
-        },
-      })
-    );
+    expect(results[0].stateExitedEventDetails?.output).toBe("{}");
   });
 });

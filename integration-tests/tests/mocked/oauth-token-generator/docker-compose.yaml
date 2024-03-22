@@ -12,4 +12,4 @@ services:
       AWS_DEFAULT_REGION: "local"
       AWS_ACCESS_KEY_ID: "local"
     volumes:
-      - ./tests/MockConfigFile.json:/home/stepfunctionslocal/MockConfigFile.json
+      - ./MockConfigFile.json:/home/stepfunctionslocal/MockConfigFile.json
