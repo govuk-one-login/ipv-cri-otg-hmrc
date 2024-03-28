@@ -17,7 +17,7 @@ describe("oauth-token-generator-happy.test", () => {
   });
 
   it("should successfully pass a happy path journey", async () => {
-    const input = JSON.stringify({ valid: "input" });
+    const input = JSON.stringify({ tokenType: "stub" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "Happy",
       input

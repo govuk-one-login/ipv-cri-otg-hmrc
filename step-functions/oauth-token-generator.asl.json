@@ -6,7 +6,7 @@
       "Type": "Task",
       "Next": "Generate TOTP Code",
       "Parameters": {
-        "SecretId": "${TotpSecretName}"
+        "SecretId.$": "States.Format('HMRC/TOTPSecret/{}', $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "ResultPath": "$.totpSecret"
@@ -35,14 +35,15 @@
       ],
       "Next": "Fetch HMRC Client Id",
       "ResultSelector": {
-        "totpCode.$": "$.Payload.totp"
-      }
+        "value.$": "$.Payload.totp"
+      },
+      "ResultPath": "$.totpCode"
     },
     "Fetch HMRC Client Id": {
       "Type": "Task",
       "Next": "Fetch HMRC Client Secret",
       "Parameters": {
-        "SecretId": "${ClientId}"
+        "SecretId.$": "States.Format('HMRC/ClientId/{}', $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "ResultPath": "$.clientId"
@@ -51,7 +52,7 @@
       "Type": "Task",
       "Next": "Fetch HMRC OAuth URL",
       "Parameters": {
-        "SecretId": "${ClientSecretName}"
+        "SecretId.$": "States.Format('HMRC/ClientSecret/{}', $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "ResultPath": "$.clientSecret"
@@ -60,7 +61,7 @@
       "Type": "Task",
       "Next": "Invoke HMRC OAuth Token API",
       "Parameters": {
-        "Name": "${OAuthUrlParameter}"
+        "Name.$": "States.Format('/${StackName}/HMRC/OAuthURL/{}', $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
       "ResultSelector": {
@@ -71,11 +72,10 @@
     "Invoke HMRC OAuth Token API": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$",
       "Parameters": {
         "FunctionName": "${BearerTokenFunctionArn}",
         "Payload": {
-          "totp.$": "$.totpCode",
+          "totp.$": "$.totpCode.value",
           "clientSecret": {
             "value.$": "$.clientSecret.SecretString"
           },
@@ -96,16 +96,13 @@
         }
       ],
       "Next": "Store Bearer Token",
-      "ResultSelector": {
-        "token.$": "$.Payload.token",
-        "expiry.$": "$.Payload.tokenExpiry"
-      }
+      "ResultPath": "$.response"
     },
     "Store Bearer Token": {
       "Type": "Task",
       "Parameters": {
-        "SecretId": "${BearerTokenName}",
-        "SecretString.$": "$"
+        "SecretId.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)",
+        "SecretString.$": "$.response.Payload"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
       "Next": "Success",

@@ -17,7 +17,7 @@ happy:
 	--endpoint http://localhost:8083 \
 	--name happyPathExecution \
 	--state-machine ${STATE_MACHINE_ARN}#Happy \
-	--input '{}' \
+	--input '{ tokenType: "stub" }' \
 	--no-cli-pager
 
 hmrcAPIFail:
@@ -25,5 +25,5 @@ hmrcAPIFail:
 	--endpoint http://localhost:8083 \
 	--name happyPathExecution \
 	--state-machine ${STATE_MACHINE_ARN}#hmrcAPIFail \
-	--input '{}' \
+	--input '{ tokenType: "stub" }' \
 	--no-cli-pager
