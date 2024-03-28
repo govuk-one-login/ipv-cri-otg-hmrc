@@ -3,21 +3,12 @@ Description: Digital Identity IPV HMRC OAuth Token Generator
 Transform: [AWS::LanguageExtensions, AWS::Serverless-2016-10-31]
 
 Parameters:
-  TotpSecretName:
-    Type: String
-    Default: TotpSecretName
-  ClientSecretName:
-    Type: String
-    Default: HMRC_Client_Secret
-  ClientId:
-    Type: String
-    Default: HMRC_Client_Id
-  OAuthUrl:
+  SandboxOAuthUrl:
     Type: String
     Default: https://test-api.service.hmrc.gov.uk/oauth/token
-  BearerTokenName:
+  ProductionOAuthUrl:
     Type: String
-    Default: HMRCBearerToken
+    Default: https://api.service.hmrc.gov.uk/oauth/token
   Environment:
     Type: String
     Default: dev
@@ -39,6 +30,8 @@ Conditions:
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
+  IsNotDevLikeEnvironment: !Not
+    - !Condition IsDevLikeEnvironment
 
 Mappings:
   Dynatrace:
@@ -89,18 +82,34 @@ Globals:
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
 
 Resources:
-  OAuthUrlParameter:
+  StubOAuthUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/stub
       Type: String
-      Value: !Ref OAuthUrl
-      Description: HMRC OAuth URL
+      Value:
+        !Join [
+          "",
+          [!ImportValue third-party-stubs-ImposterStubApiUrl, "/oauth/token"],
+        ]
+      Description: Imposter Mock of HMRC OAuth URL
 
-  BearerTokenExpiry:
+  SandboxOAuthUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/sandbox
       Type: String
-      Value: AWS::NoValue
+      Value: !Ref SandboxOAuthUrl
+      Description: HMRC Sandbox OAuth URL
+
+  ProductionOAuthUrlParameter:
+    Condition: IsNotDevLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/production
+      Type: String
+      Value: !Ref ProductionOAuthUrl
+      Description: HMRC Production OAuth URL
 
   PrivateOTGApi:
     Type: AWS::Serverless::Api
@@ -205,35 +214,28 @@ Resources:
       DefinitionSubstitutions:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
-        BearerTokenName: !Ref BearerTokenName
-        OAuthUrlParameter: !Ref OAuthUrlParameter
-        BearerTokenExpiry: !Ref BearerTokenExpiry
-        ClientSecretName: !Ref ClientSecretName
-        TotpSecretName: !Ref TotpSecretName
-        ClientId: !Ref ClientId
+        StackName: !Ref AWS::StackName
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref TotpGeneratorFunction
         - LambdaInvokePolicy:
             FunctionName: !Ref BearerTokenHandlerFunction
         - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${TotpSecretName}-??????
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/TOTPSecret/*
         - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientSecretName}-??????
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientSecret/*
         - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientId}-??????
-        - SSMParameterReadPolicy:
-            ParameterName: !Ref OAuthUrlParameter
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientId/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter*/HMRC/OAuthURL/*
         - Statement:
             - Effect: Allow
               Action:
                 - secretsmanager:PutSecretValue
-              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${BearerTokenName}-??????
-        - Statement:
-            - Effect: Allow
-              Action:
-                - ssm:PutParameter
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${BearerTokenExpiry}
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -253,7 +255,7 @@ Resources:
         Level: ALL
       Policies:
         - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRCBearerToken/*
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
         - Statement:
             Effect: Allow
             Action: logs:*
