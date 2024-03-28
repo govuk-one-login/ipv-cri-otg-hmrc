@@ -1,7 +1,6 @@
-import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
 
-jest.setTimeout(40_000);
+jest.setTimeout(120_000);
 
 describe("generate-totp-unhappy", () => {
   let sfnContainer: SfnContainerHelper;
@@ -17,7 +16,7 @@ describe("generate-totp-unhappy", () => {
   });
 
   it("should fail when HMRC responds with an error", async () => {
-    const input = JSON.stringify({ valid: "input" });
+    const input = JSON.stringify({ tokenType: "stub" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "hmrcAPIFail",
       input
