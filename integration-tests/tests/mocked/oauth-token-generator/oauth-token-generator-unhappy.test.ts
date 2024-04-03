@@ -2,7 +2,7 @@ import { SfnContainerHelper } from "./sfn-container-helper";
 
 jest.setTimeout(120_000);
 
-describe("generate-totp-unhappy", () => {
+describe("oauth-token-generator-unhappy", () => {
   let sfnContainer: SfnContainerHelper;
 
   beforeAll(async () => {
