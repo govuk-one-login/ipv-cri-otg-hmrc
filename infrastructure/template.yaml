@@ -101,6 +101,10 @@ Resources:
           MaximumEventAgeInSeconds: 86400
           MaximumRetryAttempts: 185
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
 
   SandboxTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
@@ -119,6 +123,10 @@ Resources:
           MaximumEventAgeInSeconds: 86400
           MaximumRetryAttempts: 185
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
 
   ProductionTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
@@ -137,6 +145,10 @@ Resources:
           MaximumEventAgeInSeconds: 86400
           MaximumRetryAttempts: 185
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
 
   RefreshSchedulerRole:
     Type: AWS::IAM::Role
