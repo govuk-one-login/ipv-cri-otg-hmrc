@@ -16,7 +16,7 @@ describe("oauth-token-generator-happy.test", () => {
     expect(sfnContainer.getContainer()).toBeDefined();
   });
 
-  xit("should successfully pass a happy path journey", async () => {
+  it("should successfully pass a happy path journey", async () => {
     const input = JSON.stringify({ tokenType: "stub" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "Happy",
