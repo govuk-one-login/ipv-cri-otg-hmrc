@@ -34,6 +34,7 @@ export class BearerTokenHandler implements LambdaInterface {
       return {
         token: body.access_token,
         tokenExpiry: (Date.now() + body.expires_in * 1000).toString(),
+        tokenExpiryInMinutes: body.expires_in / 60,
       };
     } catch (error: unknown) {
       if (error instanceof Error) {
