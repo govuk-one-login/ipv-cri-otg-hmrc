@@ -141,7 +141,6 @@ Resources:
   RefreshSchedulerRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AWS::StackName}-RefreshSchedulerRole
       Description: Role to allow EventBridge to run a state machine
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -298,7 +297,7 @@ Resources:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
         StackName: !Ref AWS::StackName
-        RefreshSchedulerRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
+        RefreshSchedulerRole: !Ref RefreshSchedulerRole
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref TotpGeneratorFunction
@@ -329,7 +328,7 @@ Resources:
             - Effect: Allow
               Action:
                 - iam:PassRole
-              Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
+              Resource: !Ref RefreshSchedulerRole
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
