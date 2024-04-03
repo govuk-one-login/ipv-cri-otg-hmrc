@@ -115,7 +115,7 @@
         "FlexibleTimeWindow": {
           "Mode": "OFF"
         },
-        "Name.$": "States.Format('${StackName}-{}TokenRefreshScheduler', $.tokenType)",
+        "Name.$": "States.Format('${StackName}-{}', $.tokenType)",
         "ScheduleExpression.$": "States.Format('rate({} minutes)', $.response.Payload.tokenExpiryInMinutes)",
         "Target": {
           "Arn.$": "$$.StateMachine.Id",

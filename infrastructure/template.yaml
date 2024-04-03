@@ -88,7 +88,7 @@ Resources:
     Type: AWS::Scheduler::Schedule
     Condition: IsNotProdEnvironment
     Properties:
-      Name: !Sub ${AWS::StackName}-stubTokenRefreshScheduler
+      Name: !Sub ${AWS::StackName}-stub
       Description: OTG refresh schedule for the stub token
       FlexibleTimeWindow:
         Mode: "OFF"
@@ -106,7 +106,7 @@ Resources:
     Type: AWS::Scheduler::Schedule
     Condition: IsNotProdEnvironment
     Properties:
-      Name: !Sub ${AWS::StackName}-sandboxTokenRefreshScheduler
+      Name: !Sub ${AWS::StackName}-sandbox
       Description: OTG refresh schedule for the sandbox token
       FlexibleTimeWindow:
         Mode: "OFF"
@@ -124,7 +124,7 @@ Resources:
     Type: AWS::Scheduler::Schedule
     Condition: IsProdEnvironment
     Properties:
-      Name: !Sub ${AWS::StackName}-productionTokenRefreshScheduler
+      Name: !Sub ${AWS::StackName}-production
       Description: OTG refresh schedule for the production token
       FlexibleTimeWindow:
         Mode: "OFF"
@@ -324,7 +324,7 @@ Resources:
             - Effect: Allow
               Action:
                 - scheduler:UpdateSchedule
-              Resource: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*TokenRefreshScheduler
+              Resource: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*
         - Statement:
             - Effect: Allow
               Action:
