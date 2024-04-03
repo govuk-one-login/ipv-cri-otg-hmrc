@@ -4,12 +4,23 @@
   "States": {
     "Fetch TOTP Secret": {
       "Type": "Task",
-      "Next": "Generate TOTP Code",
+      "Next": "Get StackName",
       "Parameters": {
         "SecretId.$": "States.Format('HMRC/TOTPSecret/{}', $.tokenType)"
       },
+      "ResultSelector": {
+        "SecretString.$": "$.SecretString"
+      },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "ResultPath": "$.totpSecret"
+    },
+    "Get StackName": {
+      "Type": "Pass",
+      "Parameters": {
+        "value": "${StackName}"
+      },
+      "Next": "Generate TOTP Code",
+      "ResultPath": "$.StackName"
     },
     "Generate TOTP Code": {
       "Type": "Task",
@@ -61,7 +72,7 @@
       "Type": "Task",
       "Next": "Invoke HMRC OAuth Token API",
       "Parameters": {
-        "Name.$": "States.Format('/${StackName}/HMRC/OAuthURL/{}', $.tokenType)"
+        "Name.$": "States.Format('/{}/HMRC/OAuthURL/{}', $.StackName.value, $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
       "ResultSelector": {
@@ -95,6 +106,9 @@
           "MaxAttempts": 3
         }
       ],
+      "ResultSelector": {
+        "Payload.$": "$.Payload"
+      },
       "Next": "Store Bearer Token",
       "ResultPath": "$.response"
     },
@@ -115,7 +129,7 @@
         "FlexibleTimeWindow": {
           "Mode": "OFF"
         },
-        "Name.$": "States.Format('${StackName}-{}', $.tokenType)",
+        "Name.$": "States.Format('{}-{}', $.StackName.value, $.tokenType)",
         "ScheduleExpression.$": "States.Format('rate({} minutes)', $.response.Payload.tokenExpiryInMinutes)",
         "Target": {
           "Arn.$": "$$.StateMachine.Id",
