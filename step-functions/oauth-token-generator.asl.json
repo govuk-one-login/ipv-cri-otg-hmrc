@@ -105,7 +105,29 @@
         "SecretString.$": "$.response.Payload"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
+      "Next": "Update Scheduler Time",
+      "ResultPath": "$.store"
+    },
+    "Update Scheduler Time": {
+      "Type": "Task",
       "Next": "Success",
+      "Parameters": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF"
+        },
+        "Name.$": "States.Format('${StackName}-{}', $.tokenType)",
+        "ScheduleExpression.$": "States.Format('rate({} minutes)', $.response.Payload.tokenExpiryInMinutes)",
+        "Target": {
+          "Arn.$": "$$.StateMachine.Id",
+          "Input.$": "$$.Execution.Input",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185
+          },
+          "RoleArn": "${RefreshSchedulerRole}"
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:scheduler:updateSchedule",
       "ResultSelector": {}
     },
     "Success": {

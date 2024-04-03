@@ -9,7 +9,8 @@
           "Generate TOTP Code": "GenerateTOTPSuccess",
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
-          "Store Bearer Token": "StoreBearerTokenSuccess"
+          "Store Bearer Token": "StoreBearerTokenSuccess",
+          "Update Scheduler Time": "UpdateScheduleTimeSuccess"
         },
         "hmrcAPIFail": {
           "Fetch HMRC Client Id": "FetchClientIdSuccess",
@@ -70,7 +71,8 @@
           "StatusCode": 200,
           "Payload": {
             "token": "999999999999",
-            "tokenExpiry": 999999999999
+            "tokenExpiry": 999999999999,
+            "tokenExpiryInMinutes": 240
           }
         }
       }
@@ -88,6 +90,11 @@
           "Error": "InternalServerException",
           "Cause": "dummy-cause"
         }
+      }
+    },
+    "UpdateScheduleTimeSuccess": {
+      "0": {
+        "Return": {}
       }
     }
   }
