@@ -33,6 +33,7 @@ describe("bearer-token-handler", () => {
     expect(result).toStrictEqual({
       token: 12345678,
       tokenExpiry: "1622646000000",
+      tokenExpiryInMinutes: 144000 / 60,
     });
   });
 });
