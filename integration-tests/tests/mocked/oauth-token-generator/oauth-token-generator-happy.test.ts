@@ -28,6 +28,6 @@ describe("oauth-token-generator-happy.test", () => {
       responseStepFunction
     );
     expect(results).toBeDefined();
-    expect(results[0].stateExitedEventDetails?.output).toBe("{}");
+    expect(results[0].stateExitedEventDetails?.output).toBe("[{}]");
   });
 });
