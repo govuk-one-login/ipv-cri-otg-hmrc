@@ -22,7 +22,7 @@ sam deploy --stack-name "$stack_name" \
   --resolve-s3 \
   --s3-prefix "$stack_name" \
   --region "${AWS_REGION:-eu-west-2}" \
-  --capabilities CAPABILITY_IAM \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
   --tags \
   cri:component=ipv-cri-otg-hmrc \
   cri:stack-type=localdev \
