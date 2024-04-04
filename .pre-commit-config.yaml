@@ -20,6 +20,8 @@ repos:
     rev: v3.1.0
     hooks:
       - id: prettier
+        files: ".*\\.(js|ts)"
+        pass_filenames: false
   - repo: https://github.com/aws-cloudformation/cfn-lint
     rev: v0.85.2
     hooks:
