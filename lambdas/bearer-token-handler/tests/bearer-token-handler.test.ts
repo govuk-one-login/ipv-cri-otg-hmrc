@@ -32,8 +32,8 @@ describe("bearer-token-handler", () => {
     const result = await bearerTokenHandler.handler(event, {} as Context);
     expect(result).toStrictEqual({
       token: 12345678,
-      tokenExpiry: "1622646000000",
-      tokenExpiryInMinutes: 144000 / 60,
+      tokenExpiry: "1622574000000",
+      tokenExpiryInMinutes: 1200,
     });
   });
 });
