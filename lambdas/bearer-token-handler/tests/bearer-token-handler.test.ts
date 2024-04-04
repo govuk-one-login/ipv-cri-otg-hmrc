@@ -8,12 +8,15 @@ describe("bearer-token-handler", () => {
   });
 
   it("should return a bearer token with the expected expiry date", async () => {
-    jest.spyOn(Date, "now").mockReturnValue(1622502000000);
+    const mockedExpiryInSeconds = 14400;
+    const mockedAccessToken = 123456789;
+    const firstJune2021Midnight = 1622502000000;
+    jest.spyOn(Date, "now").mockReturnValue(firstJune2021Midnight);
     global.fetch = jest.fn();
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: jest.fn().mockResolvedValueOnce({
-        access_token: 12345678,
-        expires_in: 144000,
+        access_token: mockedAccessToken,
+        expires_in: mockedExpiryInSeconds,
       }),
     });
     const bearerTokenHandler = new BearerTokenHandler();
@@ -30,10 +33,16 @@ describe("bearer-token-handler", () => {
       },
     };
     const result = await bearerTokenHandler.handler(event, {} as Context);
+    const halfOfExpiryInSeconds = mockedExpiryInSeconds / 2;
+    const expectedTokenExpiry = (
+      firstJune2021Midnight +
+      halfOfExpiryInSeconds * 1000
+    ).toString();
+    const expectedTokenExpiryInMins = halfOfExpiryInSeconds / 60;
     expect(result).toStrictEqual({
-      token: 12345678,
-      tokenExpiry: "1622574000000",
-      tokenExpiryInMinutes: 1200,
+      token: mockedAccessToken,
+      tokenExpiry: expectedTokenExpiry,
+      tokenExpiryInMinutes: expectedTokenExpiryInMins,
     });
   });
 });
