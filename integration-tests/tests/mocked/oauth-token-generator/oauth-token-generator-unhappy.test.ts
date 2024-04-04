@@ -1,7 +1,7 @@
+import { HistoryEvent, StateEnteredEventDetails } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
-import { HistoryEvent } from "@aws-sdk/client-sfn";
 
-jest.setTimeout(120_000);
+jest.setTimeout(200_000);
 
 describe("oauth-token-generator-unhappy", () => {
   let sfnContainer: SfnContainerHelper;
@@ -12,20 +12,32 @@ describe("oauth-token-generator-unhappy", () => {
 
   afterAll(async () => sfnContainer.shutDown());
 
-  xit("has a step-function docker container running", async () => {
+  it("has a step-function docker container running", async () => {
     expect(sfnContainer.getContainer()).toBeDefined();
   });
 
-  xit("should fail when HMRC responds with an error", async () => {
+  it("should fail when HMRC responds with an error", async () => {
     const input = JSON.stringify({ tokenType: "stub" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "hmrcAPIFail",
       input
     );
     const results = await sfnContainer.waitFor(
-      (event: HistoryEvent) => event?.stateExitedEventDetails?.name === "Fail",
+      (event: HistoryEvent) => event?.stateEnteredEventDetails?.name === "Fail",
       responseStepFunction
     );
-    expect(results[results.length].type).toBe("ParallelStateFailed");
+
+    const result: StateEnteredEventDetails = JSON.parse(
+      results[0]?.stateEnteredEventDetails?.input as string
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        fail: expect.objectContaining({
+          Error: expect.any(String),
+          Cause: expect.any(String),
+        }),
+      })
+    );
   });
 });
