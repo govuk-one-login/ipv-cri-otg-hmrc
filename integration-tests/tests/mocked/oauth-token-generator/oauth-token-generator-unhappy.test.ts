@@ -22,27 +22,30 @@ describe("oauth-token-generator-unhappy", () => {
       "hmrcAPIFail",
       input
     );
-    const lambdaError = await sfnContainer.waitFor(
-      (event: HistoryEvent) =>
-        event?.type === "TaskFailed" &&
-        event?.taskFailedEventDetails?.resourceType == "lambda",
-      responseStepFunction
-    );
+
+    const failedStateEvent = (e: HistoryEvent) =>
+      e?.stateEnteredEventDetails?.name === "Fail";
+
     const results = await sfnContainer.waitFor(
-      (event: HistoryEvent) => event?.stateEnteredEventDetails?.name === "Fail",
+      (event: HistoryEvent) =>
+        (event?.type === "TaskFailed" &&
+          event?.taskFailedEventDetails?.resourceType == "lambda") ||
+        failedStateEvent(event),
       responseStepFunction
     );
 
     const parsedResults = JSON.parse(
-      results[0]?.stateEnteredEventDetails?.input ?? "{}"
+      results[4]?.stateEnteredEventDetails?.input ?? "{}"
     );
 
-    expect(lambdaError).toHaveLength(4);
-    lambdaError.forEach((lambdaErr) => {
-      expect(lambdaErr?.taskFailedEventDetails?.cause).toBe(
-        "Internal Server Exception"
-      );
-    });
+    expect(results).toHaveLength(5);
+    results
+      .filter((event) => !failedStateEvent(event))
+      .forEach((lambdaErr) => {
+        expect(lambdaErr?.taskFailedEventDetails?.cause).toBe(
+          "Internal Server Exception"
+        );
+      });
 
     expect(parsedResults).toEqual(
       expect.objectContaining({

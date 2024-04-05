@@ -37,29 +37,21 @@ describe("oauth-token-generator-happy.test", () => {
       "HappyOnLastTry",
       input
     );
-    const lambdaError = await sfnContainer.waitFor(
-      (event: HistoryEvent) =>
-        event?.type === "TaskFailed" &&
-        event?.taskFailedEventDetails?.resourceType == "lambda",
-      responseStepFunction
-    );
-    const results = await sfnContainer.waitFor(
-      (event: HistoryEvent) =>
-        event?.stateExitedEventDetails?.name === "Success",
-      responseStepFunction
-    );
 
-    expect(lambdaError).toHaveLength(3);
-    expect(lambdaError[0]?.taskFailedEventDetails?.cause).toBe(
+    const [lambdaErr1, lambdaErr2, lambdaErr3, result] =
+      await sfnContainer.waitFor(
+        (event: HistoryEvent) =>
+          (event?.type === "TaskFailed" &&
+            event?.taskFailedEventDetails?.resourceType == "lambda") ||
+          event?.stateExitedEventDetails?.name === "Success",
+        responseStepFunction
+      );
+
+    expect(lambdaErr1?.taskFailedEventDetails?.cause).toBe(
       "Lambda resource is not ready."
     );
-    expect(lambdaError[1]?.taskFailedEventDetails?.cause).toBe(
-      "Lambda timed out."
-    );
-    expect(lambdaError[2]?.taskFailedEventDetails?.cause).toBe(
-      "Lambda timed out."
-    );
-
-    expect(results[0].stateExitedEventDetails?.output).toBe("[{}]");
+    expect(lambdaErr2?.taskFailedEventDetails?.cause).toBe("Lambda timed out.");
+    expect(lambdaErr3?.taskFailedEventDetails?.cause).toBe("Lambda timed out.");
+    expect(result.stateExitedEventDetails?.output).toBe("[{}]");
   });
 });
