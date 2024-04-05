@@ -5,21 +5,47 @@
     "Fetch Bearer Token": {
       "Type": "Task",
       "Parameters": {
-        "SecretId.$": "States.Format('HMRCBearerToken/{}', $.tokenType)"
+        "SecretId.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "ResultSelector": {
         "secret.$": "States.StringToJson($.SecretString)"
       },
+      "Next": "Token and Expiry",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "Generate Fail Response"
+        }
+      ]
+    },
+    "Generate Fail Response": {
+      "Type": "Pass",
+      "Parameters": {
+        "httpStatus": 400
+      },
+      "End": true
+    },
+    "Token and Expiry": {
+      "Type": "Pass",
+      "Parameters": {
+        "body": {
+          "token.$": "$.secret.token",
+          "expiry.$": "$.secret.tokenExpiry"
+        }
+      },
       "Next": "Generate Response"
     },
     "Generate Response": {
       "Type": "Pass",
-      "End": true,
+      "Next": "Success",
       "Parameters": {
-        "token.$": "$.secret.token",
-        "expiry.$": "$.secret.expiry"
+        "httpStatus": 200,
+        "body.$": "States.JsonToString($.body)"
       }
+    },
+    "Success": {
+      "Type": "Succeed"
     }
   }
 }
