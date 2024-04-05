@@ -34,11 +34,19 @@ paths:
               }
         responses:
           default:
-            statusCode: 200
+            statusCode: 500
             responseTemplates:
               application/json: |
                 #set($response = $util.parseJson($input.body))
-                $response.output
+                #set($output = $util.parseJson($response.output))
+                #if($response.status == "FAILED")
+                #set($context.responseOverride.status = 500)
+                #elseif($output.httpStatus)
+                #set($context.responseOverride.status = $output.httpStatus)
+                #else
+                #set($context.responseOverride.status = 200)
+                #end
+                $output.body
 
 components:
   parameters:
