@@ -20,6 +20,14 @@ happy:
 	--input '{ "tokenType": "stub" }' \
 	--no-cli-pager
 
+happyLast:
+	aws stepfunctions start-execution \
+	--endpoint http://localhost:8083 \
+	--name happyPathExecution \
+	--state-machine ${STATE_MACHINE_ARN}#HappyOnLastTry \
+	--input '{ "tokenType": "stub" }' \
+	--no-cli-pager
+
 hmrcAPIFail:
 	aws stepfunctions start-execution \
 	--endpoint http://localhost:8083 \
