@@ -336,6 +336,10 @@ Resources:
               Action:
                 - iam:PassRole
               Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
+        - Statement:
+            Effect: Allow
+            Action: logs:*
+            Resource: "*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
