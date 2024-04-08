@@ -299,6 +299,12 @@ Resources:
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
         StackName: !Ref AWS::StackName
         RefreshSchedulerRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt OAuthTokenStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref TotpGeneratorFunction
@@ -330,10 +336,20 @@ Resources:
               Action:
                 - iam:PassRole
               Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
+        - Statement:
+            Effect: Allow
+            Action: logs:*
+            Resource: "*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  OAuthTokenStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   BearerTokenRetrievalStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -393,6 +409,26 @@ Resources:
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  SuccessTokenGenerationMetric:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+      FilterPattern: '{($.details.name = "Success")}'
+      MetricTransformations:
+        - MetricValue: 1
+          MetricName: SuccessfulTokenGenerationMetric
+          MetricNamespace: "otg-hmrc-service"
+
+  FailTokenGenerationMetric:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+      FilterPattern: '{($.details.name = "Fail")}'
+      MetricTransformations:
+        - MetricValue: 1
+          MetricName: FailTokenGenerationMetric
+          MetricNamespace: "otg-hmrc-service"
 
 Outputs:
   PrivateApiGatewayId:
