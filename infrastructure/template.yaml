@@ -289,6 +289,33 @@ Resources:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
       RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
 
+  SecretsManagerHandlerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Sourcemap: true
+    Properties:
+      Handler: lambdas/secrets-manager-handler/src/secrets-manager-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
+      CodeSigningConfigArn:
+        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      Layers:
+        - arn:aws:lambda:eu-west-2:133256977650:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:11
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+
+  SecretsManagerHandlerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -341,6 +368,8 @@ Resources:
       Type: EXPRESS
       Name: !Sub "${AWS::StackName}-BearerTokenRetrieval"
       DefinitionUri: ../step-functions/bearer-token-retrieval.asl.json
+      DefinitionSubstitutions:
+        SecretsManagerHandlerFunctionArn: !GetAtt SecretsManagerHandlerFunction.Arn
       Logging:
         Destinations:
           - CloudWatchLogsLogGroup:
@@ -348,6 +377,8 @@ Resources:
         IncludeExecutionData: True
         Level: ALL
       Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SecretsManagerHandlerFunction
         - Statement:
             - Effect: Allow
               Action:
