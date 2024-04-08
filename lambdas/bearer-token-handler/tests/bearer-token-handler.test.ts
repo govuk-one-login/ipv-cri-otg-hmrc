@@ -18,6 +18,7 @@ describe("bearer-token-handler", () => {
         access_token: mockedAccessToken,
         expires_in: mockedExpiryInSeconds,
       }),
+      ok: true,
     });
     const bearerTokenHandler = new BearerTokenHandler();
     const event = {
