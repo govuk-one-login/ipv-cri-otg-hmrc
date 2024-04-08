@@ -1,7 +1,7 @@
 import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
 
-jest.setTimeout(40_000);
+jest.setTimeout(60_000);
 
 describe("oauth-token-generator-happy.test", () => {
   let sfnContainer: SfnContainerHelper;
@@ -29,5 +29,29 @@ describe("oauth-token-generator-happy.test", () => {
     );
     expect(results).toBeDefined();
     expect(results[0].stateExitedEventDetails?.output).toBe("[{}]");
+  });
+
+  it("should succeed on final attempt, after multiple lambda errors retries", async () => {
+    const input = JSON.stringify({ tokenType: "stub" });
+    const responseStepFunction = await sfnContainer.startStepFunctionExecution(
+      "HappyOnLastTry",
+      input
+    );
+
+    const [lambdaErr1, lambdaErr2, lambdaErr3, result] =
+      await sfnContainer.waitFor(
+        (event: HistoryEvent) =>
+          (event?.type === "TaskFailed" &&
+            event?.taskFailedEventDetails?.resourceType == "lambda") ||
+          event?.stateExitedEventDetails?.name === "Success",
+        responseStepFunction
+      );
+
+    expect(lambdaErr1?.taskFailedEventDetails?.cause).toBe(
+      "Lambda resource is not ready."
+    );
+    expect(lambdaErr2?.taskFailedEventDetails?.cause).toBe("Lambda timed out.");
+    expect(lambdaErr3?.taskFailedEventDetails?.cause).toBe("Lambda timed out.");
+    expect(result.stateExitedEventDetails?.output).toBe("[{}]");
   });
 });

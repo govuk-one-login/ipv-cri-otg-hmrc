@@ -12,6 +12,16 @@
           "Store Bearer Token": "StoreBearerTokenSuccess",
           "Update Scheduler Time": "UpdateScheduleTimeSuccess"
         },
+        "HappyOnLastTry": {
+          "Fetch HMRC Client Id": "FetchClientIdSuccess",
+          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
+          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
+          "Generate TOTP Code": "GenerateTOTPSuccess",
+          "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
+          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
+          "Store Bearer Token": "StoreBearerTokenSuccess",
+          "Update Scheduler Time": "UpdateScheduleTimeSuccess"
+        },
         "hmrcAPIFail": {
           "Fetch HMRC Client Id": "FetchClientIdSuccess",
           "Fetch TOTP Secret": "FetchTotpSecretSuccess",
@@ -88,7 +98,31 @@
       "0-3": {
         "Throw": {
           "Error": "InternalServerException",
-          "Cause": "dummy-cause"
+          "Cause": "Internal Server Exception"
+        }
+      }
+    },
+    "InvokeHMRCAPIFailFailSucceed": {
+      "0": {
+        "Throw": {
+          "Error": "Lambda.ResourceNotReadyException",
+          "Cause": "Lambda resource is not ready."
+        }
+      },
+      "1-2": {
+        "Throw": {
+          "Error": "Lambda.TimeoutException",
+          "Cause": "Lambda timed out."
+        }
+      },
+      "3": {
+        "Return": {
+          "StatusCode": 200,
+          "Payload": {
+            "token": "999999999999",
+            "tokenExpiry": 999999999999,
+            "tokenExpiryInMinutes": 240
+          }
         }
       }
     },
