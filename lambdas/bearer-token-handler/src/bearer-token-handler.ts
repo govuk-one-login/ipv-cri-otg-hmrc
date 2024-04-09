@@ -29,14 +29,19 @@ export class BearerTokenHandler implements LambdaInterface {
         body: formBody,
       });
 
-      const body = (await response.json()) as OAuthResponse;
-      const expiry = body.expires_in / 2;
+      if (response.ok) {
+        const body = (await response.json()) as OAuthResponse;
+        const expiry = body.expires_in / 2;
+        return {
+          token: body.access_token,
+          tokenExpiry: (Date.now() + expiry * 1000).toString(),
+          tokenExpiryInMinutes: expiry / 60,
+        };
+      }
 
-      return {
-        token: body.access_token,
-        tokenExpiry: (Date.now() + expiry * 1000).toString(),
-        tokenExpiryInMinutes: expiry / 60,
-      };
+      throw new Error(
+        `Error response received from HMRC ${response.status} ${response.statusText}`
+      );
     } catch (error: unknown) {
       if (error instanceof Error) {
         logger.error("Error in BearerTokenHandler: " + error.message);
