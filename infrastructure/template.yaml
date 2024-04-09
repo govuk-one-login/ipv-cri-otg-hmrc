@@ -44,6 +44,18 @@ Mappings:
       integration: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       production: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
+  PlatformConfiguration:
+    dev:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
+    build:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
+    staging:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
+    integration:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
+    production:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
+
 Globals:
   Function:
     Timeout: 30
@@ -251,6 +263,15 @@ Resources:
       LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
+  PrivateOTGApiAccessLogSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref PrivateOTGApiAccessLogGroup
+
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -270,6 +291,15 @@ Resources:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
+  BearerTokenHandlerFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
+
   TotpGeneratorFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -288,6 +318,15 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
       RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+
+  TotpGeneratorFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
 
   SecretsManagerHandlerFunction:
     Type: AWS::Serverless::Function
@@ -315,6 +354,15 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  SecretsManagerHandlerFunctionSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref SecretsManagerHandlerFunctionLogGroup
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -377,6 +425,15 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
 
   OAuthTokenStateMachineFailedMetric:
     Type: AWS::Logs::MetricFilter
@@ -446,6 +503,15 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrieval-state-machine-logs
       RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+
+  BearerTokenRetrievalStateMachineLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
 
   BearerTokenRetrievalStateMachineFailedMetric:
     Type: AWS::Logs::MetricFilter
