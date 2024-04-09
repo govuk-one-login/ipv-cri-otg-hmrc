@@ -46,4 +46,31 @@ describe("bearer-token-handler", () => {
       tokenExpiryInMinutes: expectedTokenExpiryInMins,
     });
   });
+
+  it("should throw when an invalid response is returned from HMRC", async () => {
+    global.fetch = jest.fn();
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      json: jest.fn().mockResolvedValueOnce({}),
+      ok: false,
+      status: 400,
+      statusText: "Forbidden",
+    });
+    const bearerTokenHandler = new BearerTokenHandler();
+    const event = {
+      totp: "someTotpCode",
+      clientSecret: {
+        value: "someSecret",
+      },
+      clientId: {
+        value: "someClientId",
+      },
+      oAuthURL: {
+        value: "someUrl",
+      },
+    };
+
+    await expect(() => bearerTokenHandler.handler(event, {})).rejects.toThrow(
+      new Error("Error response received from HMRC 400 Forbidden")
+    );
+  });
 });
