@@ -378,6 +378,38 @@ Resources:
       LogGroupName: !Sub "/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
+  OAuthTokenStateMachineFailedMetric:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+      FilterPattern: '{($.type = "ExecutionFailed")}'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricName: "OAuthTokenStateMachine-Error"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+
+  OAuthTokenStateMachineAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: "OAuth Token failed 4 or more requests in the last hour"
+      AlarmName: !Sub "${AWS::StackName}-OAuth-state-machine-alarms"
+      ComparisonOperator: GreaterThanThreshold
+      DatapointsToAlarm: 4
+      EvaluationPeriods: 12
+      MetricName: "ExecutionsFailed"
+      Namespace: AWS/States
+      Period: 300
+      Statistic: Sum
+      Threshold: 0
+      TreatMissingData: missing
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref OAuthTokenStateMachine
+
   BearerTokenRetrievalStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -412,8 +444,40 @@ Resources:
   BearerTokenRetrievalStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrievalStateMachine-state-machine-logs
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrieval-state-machine-logs
       RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+
+  BearerTokenRetrievalStateMachineFailedMetric:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
+      FilterPattern: '{($.type = "ExecutionFailed")}'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricName: "BearerTokenRetrievalStateMachine-Error"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+
+  BearerTokenRetrievalStateMachineAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: "Bearer Token failed 4 or more requests in the last hour"
+      AlarmName: !Sub "${AWS::StackName}-BearerTokenRetrievalStateMachineAlarm"
+      ComparisonOperator: GreaterThanThreshold
+      DatapointsToAlarm: 4
+      EvaluationPeriods: 12
+      MetricName: "ExecutionsFailed"
+      Namespace: AWS/States
+      Period: 300
+      Statistic: Sum
+      Threshold: 0
+      TreatMissingData: missing
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref BearerTokenRetrievalStateMachine
 
   ExecuteStateMachineRole:
     Type: AWS::IAM::Role
