@@ -470,3 +470,6 @@ Outputs:
   OAuthTokenStateMachineArn:
     Description: OTG state machine ARN
     Value: !Ref OAuthTokenStateMachine
+  BearerTokenRetrievalStateMachineArn:
+    Description: Bearer Token Retrieval state machine ARN
+    Value: !Ref BearerTokenRetrievalStateMachine
