@@ -23,6 +23,7 @@ describe("bearer-token-retrieval", () => {
     );
     const result = JSON.parse(startExecutionResult.output || "");
     const body = JSON.parse(result.body || "");
+
     expect(result.httpStatus).toBe(200);
     expect(body.token).toBe("goodToken");
     expect(body.expiry).toBeDefined();
@@ -36,6 +37,7 @@ describe("bearer-token-retrieval", () => {
       }
     );
     const result = JSON.parse(startExecutionResult.output || "");
+
     expect(result.httpStatus).toBe(400);
     expect(result.body).toBeUndefined();
   });
