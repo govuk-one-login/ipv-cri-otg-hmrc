@@ -4,6 +4,7 @@
     "lint:prettier-fix": "pre-commit run prettier --all-files",
     "lint:eslint": "eslint ..",
     "test": "npm run test:mocked --",
+    "test:aws": "npm run test:aws --",
     "test:mocked": "jest --silent --select-projects integration-tests/mocked"
   },
   "dependencies": {},
