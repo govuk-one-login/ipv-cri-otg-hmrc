@@ -30,3 +30,14 @@ jobs:
     permissions:
       id-token: write
       contents: read
+
+  aws-tests:
+    name: Run tests
+    needs: deploy
+    uses: ./.github/workflows/run-aws-tests.yml
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      stack-name: ${{ needs.deploy.outputs.stack-name }}
+      aws-region: ${{ needs.deploy.outputs.aws-region }}

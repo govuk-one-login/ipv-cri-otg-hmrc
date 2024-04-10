@@ -1,0 +1,48 @@
+name: AWS tests
+
+on:
+  workflow_call:
+    inputs:
+      stack-name: { required: true, type: string }
+      aws-region: { required: false, type: string }
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: aws-tests-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: AWS
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include-workspace-root
+
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOYMENT_ROLE_ARN }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Run tests
+        uses: govuk-one-login/github-actions/node/run-script@e6b6ed890b35904e1be79f7f35ffec983fa4d9db
+        env:
+          STACK_NAME: ${{ inputs.stack-name }}
+          AWS_REGION: ${{ inputs.aws-region }}
+        with:
+          working-directory: integration-tests
+          script: npm run test:aws -- --config jest.config.ci.ts

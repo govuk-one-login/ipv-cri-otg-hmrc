@@ -1,10 +1,16 @@
 {
   "name": "otg-hmrc-api",
   "scripts": {
-    "lint:prettier-fix": "pre-commit run prettier --all-files",
-    "lint:eslint": "eslint ..",
-    "test": "npm run test:mocked --",
-    "test:mocked": "jest --silent --select-projects integration-tests/mocked"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "unit:all": "jest --runInBand",
+    "unit:aws": "jest --silent --select-projects integration-tests/aws --runInBand",
+    "unit:mocked": "jest --silent --select-projects integration-tests/mocked",
+    "test:all": "npm run unit:all --",
+    "test:aws": "npm run unit:aws --",
+    "test:mocked": "npm run unit:mocked --",
+    "deploy": "../deploy.sh",
+    "compile": "tsc"
   },
   "dependencies": {},
   "devDependencies": {
