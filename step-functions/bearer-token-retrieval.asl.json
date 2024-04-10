@@ -4,31 +4,22 @@
   "States": {
     "Fetch Bearer Token": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "Payload": {
-          "secretName.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)"
-        },
-        "FunctionName": "${SecretsManagerHandlerFunctionArn}"
-      },
-      "Retry": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2
-        }
-      ],
       "Next": "Token and Expiry",
-      "ResultSelector": {
-        "secret.$": "States.StringToJson($.Payload.value)"
+      "Parameters": {
+        "SecretId.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)"
       },
+      "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "Next": "Generate Fail Response"
         }
-      ]
+      ],
+      "ResultSelector": {
+        "secret.$": "States.StringToJson($.SecretString)"
+      }
     },
     "Generate Fail Response": {
       "Type": "Pass",
