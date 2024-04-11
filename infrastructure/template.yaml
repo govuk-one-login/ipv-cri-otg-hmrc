@@ -165,10 +165,46 @@ Resources:
               - SandboxTokenDeadLetterQueue
               - Arn
 
+  SandboxTokenDeadLetterQueueEncryptionKey:
+    Type: AWS::KMS::Key
+    Condition: IsNotProdEnvironment
+    Properties:
+      Description: "Symmetric key used to encrypt audit messages at rest in SQS"
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Enable Root access'
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Join
+              - "-"
+              - - !Ref AWS::StackName
+                - "sandboxTokenDeadLetterQueueEncryptionKey"
+        - Key: "awsStackName"
+          Value: !Sub "${AWS::StackName}"
+        - Key: Source
+          Value: "govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml"
+
+  SandboxTokenDeadLetterQueueEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsNotProdEnvironment
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/sandboxTokenDeadLetterQueueEncryptionKey
+      TargetKeyId: !Ref SandboxTokenDeadLetterQueueEncryptionKey
+
   SandboxTokenDeadLetterQueue:
     Type: AWS::SQS::Queue
     Condition: IsNotProdEnvironment
     Properties:
+      KmsMasterKeyId: !Ref SandboxTokenDeadLetterQueueEncryptionKeyAlias
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-sandbox-dlq"
       ReceiveMessageWaitTimeSeconds: 20
@@ -223,10 +259,47 @@ Resources:
               - ProductionTokenDeadLetterQueue
               - Arn
 
+  ProductionTokenDeadLetterQueueEncryptionKey:
+    Type: AWS::KMS::Key
+    Condition: IsProdEnvironment
+    Properties:
+      Description: "Symmetric key used to encrypt audit messages at rest in SQS"
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Enable Root access'
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Join
+              - "-"
+              - - !Ref AWS::StackName
+                - "productionTokenDeadLetterQueueEncryptionKey"
+        - Key: "awsStackName"
+          Value: !Sub "${AWS::StackName}"
+        - Key: Source
+          Value: "govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml"
+
+  ProductionTokenDeadLetterQueueEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsProdEnvironment
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/productionTokenDeadLetterQueueEncryptionKey
+      TargetKeyId: !Ref ProductionTokenDeadLetterQueueEncryptionKey
+
+
   ProductionTokenDeadLetterQueue:
     Type: AWS::SQS::Queue
     Condition: IsProdEnvironment
     Properties:
+      KmsMasterKeyId: !Ref ProductionTokenDeadLetterQueueEncryptionKeyAlias
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-production-dlq"
       ReceiveMessageWaitTimeSeconds: 20
