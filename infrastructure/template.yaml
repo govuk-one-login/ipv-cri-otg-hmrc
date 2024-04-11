@@ -13,6 +13,12 @@ Parameters:
     Type: String
     Default: dev
     AllowedValues: [dev, build, staging, integration, production]
+  VpcStackName:
+    Description: >
+      The name of the stack that defines the VPC in which this container will
+      run.
+    Type: String
+    Default: otg-vpc
   CodeSigningConfigArn:
     Type: String
     Default: ""
@@ -498,6 +504,147 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+  SecretsManagerHandlerRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Description: IAM Role For SecretsManagerHandler Function
+      RoleName: !Sub "${AWS::StackName}-SecretsManagerHandler"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - !Ref SecretsManagerHandlerRolePolicy
+      Tags:
+        - Key: Name
+          Value: !Join
+            - "-"
+            - - !Ref AWS::StackName
+              - "SecretsManagerHandlerRole"
+        - Key: Service
+          Value: "ci/cd"
+        - Key: Source
+          Value: "govuk-one-login/di-ipv-cri-otg-hmrc/infrastructure/template.yaml"
+
+  SecretsManagerHandlerRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      # checkov:skip=CKV_AWS_111: Not applicable here
+      ManagedPolicyName:
+        Fn::Join:
+          - "-"
+          - - !Ref AWS::StackName
+            - "SecretsManagerHandlerRolePolicy"
+            - Fn::Select:
+                - 4
+                - Fn::Split:
+                    - "-"
+                    - Fn::Select:
+                        - 2
+                        - Fn::Split:
+                            - "/"
+                            - Ref: AWS::StackId
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnforceStayinSpecificVpc
+            Effect: Allow
+            Action:
+              - 'lambda:CreateFunction'
+              - 'lambda:UpdateFunctionConfiguration'
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                "lambda:VpcIds":
+                  - Fn::ImportValue: !Sub ${VpcStackName}-VpcId
+          - Sid: OrganizationsListAccountsPolicy
+            Effect: Allow
+            Action:
+              - "organizations:ListAccounts"
+            Resource:
+              - "*"
+          - Sid: VPCAccessPolicy
+            Effect: Allow
+            Action:
+              - "ec2:CreateNetworkInterface"
+              - "ec2:DeleteNetworkInterface"
+              - "ec2:DescribeNetworkInterfaces"
+              - "ec2:DetachNetworkInterface"
+            Resource:
+              - "*"
+          - Sid: KMSDecryptPolicy
+            Effect: Allow
+            Action: "kms:Decrypt"
+            Resource:
+              Fn::Sub:
+                - "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${keyId}"
+                - keyId: !Ref SecretsManagerHandlerEncryptionKey
+          - Sid: AWSSecretsManagerGetSecretValuePolicy
+            Effect: Allow
+            Action: "secretsmanager:GetSecretValue"
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+
+  SecretsManagerHandlerEncryptionKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: Symmetric key used to encrypt secrets manager token
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'SecretsManagerAccess'
+            Effect: Allow
+            Principal:
+              Service: secretsmanager.amazonaws.com
+            Action:
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+            Condition:
+              StringEquals:
+                "kms:CallerAccount": !Sub "${AWS::AccountId}"
+          - Sid: 'SecretsManagerFunctionRoleAccess'
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam:${AWS::Region}:${AWS::AccountId}:role/${AWS::StackName}-SecretsManagerHandler"
+            Action:
+              - "kms:Decrypt*"
+            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+            Condition:
+              StringEquals:
+                "kms:CallerAccount": !Sub "${AWS::AccountId}"
+                "kms:KeyUsage": "ENCRYPT_DECRYPT"
+                "kms:ViaService":
+                  - !Sub "lambda.${AWS::Region}.amazonaws.com"
+      Tags:
+        - Key: Name
+          Value: !Join
+            - "-"
+            - - !Ref AWS::StackName
+              - "SecretsManagerHandlerEncryptionKey"
+        - Key: Service
+          Value: "ci/cd"
+        - Key: Source
+          Value: "govuk-one-login/di-ipv-cri-otg-hmrc/infrastructure/template.yaml"
+
+  SecretsManagerHandlerEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/secretsmanager/token
+      TargetKeyId: !Ref SecretsManagerHandlerEncryptionKey
+
   SecretsManagerHandlerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -505,17 +652,12 @@ Resources:
       BuildProperties:
         Sourcemap: true
     Properties:
+      Role: !GetAtt SecretsManagerHandlerRole.Arn
       Handler: lambdas/secrets-manager-handler/src/secrets-manager-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
       CodeSigningConfigArn:
         !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
 
   SecretsManagerHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
