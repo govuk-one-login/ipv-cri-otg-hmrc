@@ -1021,7 +1021,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Condition: "DeployAlarms"
     Properties:
-      LogGroupName: LOGGROUP_PLACEHOLDER
+      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup #Added the log group as a placeholder
       FilterPattern: "{ $.messageCode =* }"
       MetricTransformations:
         - MetricValue: "1"
@@ -1101,7 +1101,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Condition: "DeployAlarms"
     Properties:
-      LogGroupName: LOGGROUP_PLACEHOLDER
+      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup #Added the log group as a placeholder
       FilterPattern: "{ $.messageCode =* }"
       MetricTransformations:
         - MetricValue: "1"
