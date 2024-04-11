@@ -67,6 +67,23 @@ Mappings:
     production:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2
 
+  SchedulerConfig:
+    dev:
+      NumRetries: 3
+      RetryDelaySeconds: 600
+    build:
+      NumRetries: 185
+      RetryDelaySeconds: 600
+    staging:
+      NumRetries: 186
+      RetryDelaySeconds: 600
+    integration:
+      NumRetries: 185
+      RetryDelaySeconds: 600
+    production:
+      NumRetries: 185
+      RetryDelaySeconds: 86400
+
 Globals:
   Function:
     Timeout: 30
@@ -129,8 +146,8 @@ Resources:
     Type: AWS::Scheduler::Schedule
     Condition: IsNotProdEnvironment
     Properties:
-      Name: !Sub ${AWS::StackName}-sandbox
-      Description: OTG refresh schedule for the sandbox token
+      Name: !Sub "${AWS::StackName}-sandbox"
+      Description: "OTG refresh schedule for the sandbox token"
       FlexibleTimeWindow:
         Mode: "OFF"
       ScheduleExpression: rate(10 minutes)
@@ -139,16 +156,58 @@ Resources:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "sandbox" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds: 86400
-          MaximumRetryAttempts: 185
+          MaximumEventAgeInSeconds:  !FindInMap [ SchedulerConfig, !Ref Environment, RetryDelaySeconds ]
+          MaximumRetryAttempts: !FindInMap [ SchedulerConfig, !Ref Environment, NumRetries ]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
+        DeadLetterConfig:
+          Arn:
+            Fn::GetAtt:
+              - SandboxTokenDeadLetterQueue
+              - Arn
+
+  SandboxTokenDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsNotProdEnvironment
+    Properties:
+      ContentBasedDeduplication: False
+      FifoQueue: False
+      MessageRetentionPeriod: 1800
+      QueueName: !Sub "${AWS::StackName}-sandbox-dlq"
+      ReceiveMessageWaitTimeSeconds: 20
+      SqsManagedSseEnabled: False
+      VisibilityTimeout: 60
+
+  SandboxTokenRefreshSchedulerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsNotProdEnvironment
+    Properties:
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: "Alarm if token refresh queue grows beyond 0 messages"
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: QueueName
+          Value:
+            Fn::GetAtt:
+              - SandboxTokenDeadLetterQueue
+              - QueueName
+      EvaluationPeriods: '1'
+      InsufficientDataActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: '300'
+      Statistic: Sum
+      Threshold: '0'
 
   ProductionTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
     Condition: IsProdEnvironment
     Properties:
-      Name: !Sub ${AWS::StackName}-production
-      Description: OTG refresh schedule for the production token
+      Name: !Sub "${AWS::StackName}-production"
+      Description: "OTG refresh schedule for the production token"
       FlexibleTimeWindow:
         Mode: "OFF"
       ScheduleExpression: rate(10 minutes)
@@ -157,9 +216,51 @@ Resources:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "production" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds: 86400
-          MaximumRetryAttempts: 185
+          MaximumEventAgeInSeconds: !FindInMap [ SchedulerConfig, !Ref Environment, RetryDelaySeconds ]
+          MaximumRetryAttempts: !FindInMap [ SchedulerConfig, !Ref Environment, NumRetries ]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
+        DeadLetterConfig:
+          Arn:
+            Fn::GetAtt:
+              - ProductionTokenDeadLetterQueue
+              - Arn
+
+  ProductionTokenDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsProdEnvironment
+    Properties:
+      ContentBasedDeduplication: False
+      FifoQueue: False
+      MessageRetentionPeriod: 1800
+      QueueName: !Sub "${AWS::StackName}-production-dlq"
+      ReceiveMessageWaitTimeSeconds: 20
+      SqsManagedSseEnabled: False
+      VisibilityTimeout: 60
+
+  ProductionTokenRefreshSchedulerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProdEnvironment
+    Properties:
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: "Alarm if token refresh queue grows beyond 0 messages"
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: QueueName
+          Value:
+            Fn::GetAtt:
+              - ProductionTokenDeadLetterQueue
+              - QueueName
+      EvaluationPeriods: '1'
+      InsufficientDataActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: '300'
+      Statistic: Sum
+      Threshold: '0'
 
   RefreshSchedulerRole:
     Type: AWS::IAM::Role
