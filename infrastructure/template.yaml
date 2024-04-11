@@ -169,7 +169,6 @@ Resources:
     Type: AWS::SQS::Queue
     Condition: IsNotProdEnvironment
     Properties:
-      ContentBasedDeduplication: False
       FifoQueue: False
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-sandbox-dlq"
@@ -229,7 +228,6 @@ Resources:
     Type: AWS::SQS::Queue
     Condition: IsProdEnvironment
     Properties:
-      ContentBasedDeduplication: False
       FifoQueue: False
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-production-dlq"
