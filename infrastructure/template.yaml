@@ -169,7 +169,6 @@ Resources:
     Type: AWS::SQS::Queue
     Condition: IsNotProdEnvironment
     Properties:
-      FifoQueue: False
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-sandbox-dlq"
       ReceiveMessageWaitTimeSeconds: 20
@@ -228,7 +227,6 @@ Resources:
     Type: AWS::SQS::Queue
     Condition: IsProdEnvironment
     Properties:
-      FifoQueue: False
       MessageRetentionPeriod: 1800
       QueueName: !Sub "${AWS::StackName}-production-dlq"
       ReceiveMessageWaitTimeSeconds: 20
