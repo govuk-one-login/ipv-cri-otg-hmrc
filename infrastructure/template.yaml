@@ -360,6 +360,7 @@ Resources:
 
   StubOAuthUrlParameter:
     Type: AWS::SSM::Parameter
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/stub
       Type: String
