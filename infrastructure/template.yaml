@@ -75,7 +75,7 @@ Mappings:
       NumRetries: 185
       RetryDelaySeconds: 600
     staging:
-      NumRetries: 186
+      NumRetries: 185
       RetryDelaySeconds: 600
     integration:
       NumRetries: 185
