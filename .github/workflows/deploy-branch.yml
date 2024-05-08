@@ -59,6 +59,7 @@ jobs:
           s3-prefix: preview
           pull-repository: true
           disable-rollback: true
+          stack-name-length-limit: 43
           tags: |
             cri:component=ipv-cri-otg-hmrc
             cri:stack-type=preview
