@@ -20,31 +20,24 @@ Parameters:
     Type: String
     Default: ""
   DeployAlarmsInDev:
-    Description: "Set to the string value `true` to deploy alarms in a DEV environment"
+    Description: Set to the string value `true` to deploy alarms in a DEV environment
     Type: String
-    Default: true
+    Default: "true"
   SupportManualURL:
-    Description: "Link to the OTG support manual"
+    Description: Link to the OTG support manual
     Type: String
-    Default: 'https://govukverify.atlassian.net/wiki/spaces/OJ/pages/4090724856/OAuth+Token+Generator+support+runbook'
+    Default: https://govukverify.atlassian.net/wiki/spaces/OJ/pages/4090724856/OAuth+Token+Generator+support+runbook
 
 Conditions:
   EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
   IsDevEnvironment: !Equals [!Ref Environment, dev]
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
-  IsDevLikeEnvironment:
-    !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
-  IsProdEnvironment: !Equals
-    - !Ref Environment
-    - production
-  IsNotDevLikeEnvironment: !Not
-    - !Condition IsDevLikeEnvironment
-  IsNotProdEnvironment: !Not
-    - !Condition IsProdEnvironment
-  DeployAlarms: !Or
-    - Condition: IsProdEnvironment
-    - !Equals [!Ref DeployAlarmsInDev, true]
+  IsDevLikeEnvironment: !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsProdEnvironment: !Equals [!Ref Environment, production]
+  IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
+  IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
+  DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
 
 Mappings:
   Dynatrace:
@@ -133,7 +126,7 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       ScheduleExpression: rate(10 minutes)
-      State: "ENABLED"
+      State: ENABLED
       Target:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "stub" }'
@@ -146,52 +139,45 @@ Resources:
     Type: AWS::Scheduler::Schedule
     Condition: IsNotProdEnvironment
     Properties:
-      Name: !Sub "${AWS::StackName}-sandbox"
-      Description: "OTG refresh schedule for the sandbox token"
+      Name: !Sub ${AWS::StackName}-sandbox
+      Description: OTG refresh schedule for the sandbox token
       FlexibleTimeWindow:
         Mode: "OFF"
       ScheduleExpression: rate(10 minutes)
-      State: "ENABLED"
+      State: ENABLED
       Target:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "sandbox" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds:  !FindInMap [ SchedulerConfig, !Ref Environment, RetryDelaySeconds ]
-          MaximumRetryAttempts: !FindInMap [ SchedulerConfig, !Ref Environment, NumRetries ]
+          MaximumEventAgeInSeconds: !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
+          MaximumRetryAttempts: !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
         DeadLetterConfig:
-          Arn:
-            Fn::GetAtt:
-              - SandboxTokenDeadLetterQueue
-              - Arn
+          Arn: !GetAtt SandboxTokenDeadLetterQueue.Arn
 
   SandboxTokenDeadLetterQueueEncryptionKey:
     Type: AWS::KMS::Key
     Condition: IsNotProdEnvironment
     Properties:
-      Description: "Symmetric key used to encrypt audit messages at rest in SQS"
+      Description: Symmetric key used to encrypt audit messages at rest in SQS
       EnableKeyRotation: true
       KeySpec: SYMMETRIC_DEFAULT
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
-          - Sid: 'Enable Root access'
+          - Sid: Enable Root access
             Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - 'kms:*'
-            Resource: '*'
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: "*"
       Tags:
         - Key: Name
-          Value: !Join
-              - "-"
-              - - !Ref AWS::StackName
-                - "sandboxTokenDeadLetterQueueEncryptionKey"
-        - Key: "AwsStackName"
-          Value: !Sub "${AWS::StackName}"
+          Value: !Sub ${AWS::StackName}-sandboxTokenDeadLetterQueueEncryptionKey
+        - Key: AwsStackName
+          Value: !Ref AWS::StackName
         - Key: Source
-          Value: "govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml"
+          Value: govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml
 
   SandboxTokenDeadLetterQueueEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -206,7 +192,7 @@ Resources:
     Properties:
       KmsMasterKeyId: !Ref SandboxTokenDeadLetterQueueEncryptionKeyAlias
       MessageRetentionPeriod: 1800
-      QueueName: !Sub "${AWS::StackName}-sandbox-dlq"
+      QueueName: !Sub ${AWS::StackName}-sandbox-dlq
       ReceiveMessageWaitTimeSeconds: 20
       SqsManagedSseEnabled: False
       VisibilityTimeout: 60
@@ -219,73 +205,63 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: "Alarm if token refresh queue grows beyond 0 messages"
+      AlarmDescription: Alarm if token refresh queue grows beyond 0 messages
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
-          Value:
-            Fn::GetAtt:
-              - SandboxTokenDeadLetterQueue
-              - QueueName
-      EvaluationPeriods: '1'
+          Value: !GetAtt SandboxTokenDeadLetterQueue.QueueName
+      EvaluationPeriods: 1
       InsufficientDataActions:
         - !ImportValue platform-alarm-warning-alert-topic
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
-      Period: '300'
+      Period: 300
       Statistic: Sum
-      Threshold: '0'
+      Threshold: 0
 
   ProductionTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
     Condition: IsProdEnvironment
     Properties:
-      Name: !Sub "${AWS::StackName}-production"
-      Description: "OTG refresh schedule for the production token"
+      Name: !Sub ${AWS::StackName}-production
+      Description: OTG refresh schedule for the production token
       FlexibleTimeWindow:
         Mode: "OFF"
       ScheduleExpression: rate(10 minutes)
-      State: "ENABLED"
+      State: ENABLED
       Target:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "production" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds: !FindInMap [ SchedulerConfig, !Ref Environment, RetryDelaySeconds ]
-          MaximumRetryAttempts: !FindInMap [ SchedulerConfig, !Ref Environment, NumRetries ]
+          MaximumEventAgeInSeconds: !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
+          MaximumRetryAttempts: !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
         DeadLetterConfig:
-          Arn:
-            Fn::GetAtt:
-              - ProductionTokenDeadLetterQueue
-              - Arn
+          Arn: !GetAtt ProductionTokenDeadLetterQueue.Arn
 
   ProductionTokenDeadLetterQueueEncryptionKey:
     Type: AWS::KMS::Key
     Condition: IsProdEnvironment
     Properties:
-      Description: "Symmetric key used to encrypt audit messages at rest in SQS"
+      Description: Symmetric key used to encrypt audit messages at rest in SQS
       EnableKeyRotation: true
       KeySpec: SYMMETRIC_DEFAULT
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
-          - Sid: 'Enable Root access'
+          - Sid: Enable Root access
             Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - 'kms:*'
-            Resource: '*'
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: "*"
       Tags:
         - Key: Name
-          Value: !Join
-              - "-"
-              - - !Ref AWS::StackName
-                - "productionTokenDeadLetterQueueEncryptionKey"
-        - Key: "AwsStackName"
-          Value: !Sub "${AWS::StackName}"
+          Value: !Sub ${AWS::StackName}-productionTokenDeadLetterQueueEncryptionKey
+        - Key: AwsStackName
+          Value: !Ref AWS::StackName
         - Key: Source
-          Value: "govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml"
+          Value: govuk-one-login/ipv-cri-otg-hmrc/infrastructure/template.yaml
 
   ProductionTokenDeadLetterQueueEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -294,14 +270,13 @@ Resources:
       AliasName: !Sub alias/${AWS::StackName}/productionTokenDeadLetterQueueEncryptionKey
       TargetKeyId: !Ref ProductionTokenDeadLetterQueueEncryptionKey
 
-
   ProductionTokenDeadLetterQueue:
     Type: AWS::SQS::Queue
     Condition: IsProdEnvironment
     Properties:
       KmsMasterKeyId: !Ref ProductionTokenDeadLetterQueueEncryptionKeyAlias
       MessageRetentionPeriod: 1800
-      QueueName: !Sub "${AWS::StackName}-production-dlq"
+      QueueName: !Sub ${AWS::StackName}-production-dlq
       ReceiveMessageWaitTimeSeconds: 20
       SqsManagedSseEnabled: False
       VisibilityTimeout: 60
@@ -314,28 +289,26 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: "Alarm if token refresh queue grows beyond 0 messages"
+      AlarmDescription: Alarm if token refresh queue grows beyond 0 messages
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
-          Value:
-            Fn::GetAtt:
-              - ProductionTokenDeadLetterQueue
-              - QueueName
-      EvaluationPeriods: '1'
+          Value: !GetAtt ProductionTokenDeadLetterQueue.QueueName
+      EvaluationPeriods: 1
       InsufficientDataActions:
         - !ImportValue platform-alarm-warning-alert-topic
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
-      Period: '300'
+      Period: 300
       Statistic: Sum
-      Threshold: '0'
+      Threshold: 0
 
   RefreshSchedulerRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${AWS::StackName}-RefreshSchedulerRole
       Description: Role to allow EventBridge to run a state machine
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -353,10 +326,6 @@ Resources:
                 Action:
                   - states:StartExecution
                   - states:StartSyncExecution
-      PermissionsBoundary: !If
-        - UsePermissionsBoundary
-        - !Ref PermissionsBoundary
-        - !Ref AWS::NoValue
 
   StubOAuthUrlParameter:
     Type: AWS::SSM::Parameter
@@ -364,11 +333,9 @@ Resources:
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/stub
       Type: String
-      Value:
-        !Join [
-          "",
-          [!ImportValue third-party-stubs-ImposterStubApiUrl, "/oauth/token"],
-        ]
+      Value: !Sub
+        - ${stubUrl}/oauth/token
+        - stubUrl: !ImportValue third-party-stubs-ImposterStubApiUrl
       Description: Imposter Mock of HMRC OAuth URL
 
   SandboxOAuthUrlParameter:
@@ -450,37 +417,35 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref PrivateOTGApiAccessLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
-  PrivateOTGApiFatalErorMetricFilter:
+  PrivateOTGApiFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref PrivateOTGApiAccessLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         - MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "PrivateOTGApi-Fatalerror"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: PrivateOTGApi-FatalError
 
   PrivateOTGApiFatalErrorAlarm:
-    DependsOn:
-      - "PrivateOTGApiFatalErorMetricFilter"
+    DependsOn: PrivateOTGApiFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-PrivateOTGApi-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs."
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-PrivateOTGApi-FatalErrorAlarm
+      AlarmDescription: Trigger an alarm when Fatal Error occurs
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      MetricName: PrivateOTGApi-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      MetricName: PrivateOTGApi-FatalError
+      Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
       Dimensions: []
       Period: 60
@@ -500,8 +465,7 @@ Resources:
       Handler: lambdas/bearer-token-handler/src/bearer-token-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
-      CodeSigningConfigArn:
-        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
 
   BearerTokenHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -513,41 +477,38 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
-# BearerTokenHandlerFunction Alarms
-  BearerTokenHandlerFunctionFatalErorMetricFilter:
+  # BearerTokenHandlerFunction Alarms
+  BearerTokenHandlerFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
-        -
-          MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "BearerTokenHandlerFunction-Fatalerror"
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: BearerTokenHandlerFunction-FatalError
 
   BearerTokenHandlerFunctionFatalErrorAlarm:
-    DependsOn:
-      - "BearerTokenHandlerFunctionFatalErorMetricFilter"
+    DependsOn: BearerTokenHandlerFunctionFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-FatalErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      MetricName: BearerTokenHandlerFunction-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      InsufficientDataActions: []
+      MetricName: BearerTokenHandlerFunction-FatalError
+      Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
-      Dimensions: [ ]
+      Dimensions: []
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
@@ -557,7 +518,7 @@ Resources:
 
   BearerTokenHandlerFunctionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -565,8 +526,8 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${BearerTokenHandlerFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-throttles"
+      AlarmDescription: !Sub Trigger if the ${BearerTokenHandlerFunction} lambda throttles. ${SupportManualURL}
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-throttles
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -590,8 +551,7 @@ Resources:
       Handler: lambdas/totp-generator/src/totp-generator-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
-      CodeSigningConfigArn:
-        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
 
   TotpGeneratorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -603,41 +563,38 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref TotpGeneratorFunctionLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
-# TotpGeneratorFunction Alarms
-  TotpGeneratorFunctionFatalErorMetricFilter:
+  # TotpGeneratorFunction Alarms
+  TotpGeneratorFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref TotpGeneratorFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
-        -
-          MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "TotpGeneratorFunction-Fatalerror"
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: TotpGeneratorFunction-FatalError
 
   TotpGeneratorFunctionFatalErrorAlarm:
-    DependsOn:
-      - "TotpGeneratorFunctionFatalErorMetricFilter"
+    DependsOn: TotpGeneratorFunctionFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-TotpGeneratorFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-FatalErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      MetricName: TotpGeneratorFunction-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      InsufficientDataActions: []
+      MetricName: TotpGeneratorFunction-FatalError
+      Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
-      Dimensions: [ ]
+      Dimensions: []
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
@@ -647,7 +604,7 @@ Resources:
 
   TotpGeneratorFunctionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -655,8 +612,8 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-TotpGeneratorFunction-throttles"
+      AlarmDescription: !Sub Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-throttles
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -680,13 +637,11 @@ Resources:
       Handler: lambdas/secrets-manager-handler/src/secrets-manager-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
-      CodeSigningConfigArn:
-        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Policies:
         - Statement:
             - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
+              Action: secretsmanager:GetSecretValue
               Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
 
   SecretsManagerHandlerFunctionLogGroup:
@@ -699,41 +654,38 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref SecretsManagerHandlerFunctionLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
-# SecretsManagerHandlerFunction Alarms
-  SecretsManagerHandlerFunctionFatalErorMetricFilter:
+  # SecretsManagerHandlerFunction Alarms
+  SecretsManagerHandlerFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref SecretsManagerHandlerFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
-        -
-          MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "SecretsManagerHandlerFunction-Fatalerror"
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: SecretsManagerHandlerFunction-FatalError
 
   SecretsManagerHandlerFunctionFatalErrorAlarm:
-    DependsOn:
-      - "SecretsManagerHandlerFunctionFatalErorMetricFilter"
+    DependsOn: SecretsManagerHandlerFunctionFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-FatalErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      MetricName: SecretsManagerHandlerFunction-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      InsufficientDataActions: []
+      MetricName: SecretsManagerHandlerFunction-FatalError
+      Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
-      Dimensions: [ ]
+      Dimensions: []
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
@@ -743,7 +695,7 @@ Resources:
 
   SecretsManagerHandlerFunctionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -751,8 +703,8 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${SecretsManagerHandlerFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-throttles"
+      AlarmDescription: !Sub Trigger if the ${SecretsManagerHandlerFunction} lambda throttles. ${SupportManualURL}
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-throttles
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -769,8 +721,9 @@ Resources:
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Name: !Sub "${AWS::StackName}-OAuthTokenGenerator"
+      Name: !Sub ${AWS::StackName}-OAuthTokenGenerator
       DefinitionUri: ../step-functions/oauth-token-generator.asl.json
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
         TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
@@ -795,47 +748,38 @@ Resources:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientId/*
         - Statement:
             - Effect: Allow
-              Action:
-                - ssm:GetParameter
+              Action: ssm:GetParameter
               Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter*/HMRC/OAuthURL/*
         - Statement:
             - Effect: Allow
-              Action:
-                - secretsmanager:PutSecretValue
+              Action: secretsmanager:PutSecretValue
               Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
         - Statement:
             - Effect: Allow
-              Action:
-                - scheduler:UpdateSchedule
+              Action: scheduler:UpdateSchedule
               Resource: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*
         - Statement:
             - Effect: Allow
-              Action:
-                - iam:PassRole
+              Action: iam:PassRole
               Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
         - Statement:
             Effect: Allow
             Action: logs:*
             Resource: "*"
-      PermissionsBoundary: !If
-        - UsePermissionsBoundary
-        - !Ref PermissionsBoundary
-        - !Ref AWS::NoValue
 
   OAuthTokenStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs
       RetentionInDays: !If [IsProdEnvironment, 30, 7]
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   OAuthTokenStateMachineFailedMetric:
     Type: AWS::Logs::MetricFilter
@@ -844,22 +788,22 @@ Resources:
       FilterPattern: '{($.type = "ExecutionFailed")}'
       MetricTransformations:
         - MetricValue: "1"
-          MetricName: "OAuthTokenStateMachine-Error"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: OAuthTokenStateMachine-Error
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
 
   OAuthTokenStateMachineAlarm:
-    Type: "AWS::CloudWatch::Alarm"
+    Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: "OAuth Token failed 4 or more requests in the last hour"
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-OAuth-state-machine-alarms"
+      AlarmDescription: OAuth Token failed 4 or more requests in the last hour
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 4
       EvaluationPeriods: 12
-      MetricName: "ExecutionsFailed"
+      MetricName: ExecutionsFailed
       Namespace: AWS/States
       Period: 300
       Statistic: Sum
@@ -873,8 +817,9 @@ Resources:
     Type: AWS::Serverless::StateMachine
     Properties:
       Type: EXPRESS
-      Name: !Sub "${AWS::StackName}-BearerTokenRetrieval"
+      Name: !Sub ${AWS::StackName}-BearerTokenRetrieval
       DefinitionUri: ../step-functions/bearer-token-retrieval.asl.json
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
         SecretsManagerHandlerFunctionArn: !GetAtt SecretsManagerHandlerFunction.Arn
       Logging:
@@ -888,17 +833,12 @@ Resources:
             FunctionName: !Ref SecretsManagerHandlerFunction
         - Statement:
             - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
+              Action: secretsmanager:GetSecretValue
               Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
         - Statement:
             Effect: Allow
             Action: logs:*
             Resource: "*"
-      PermissionsBoundary: !If
-        - UsePermissionsBoundary
-        - !Ref PermissionsBoundary
-        - !Ref AWS::NoValue
 
   BearerTokenRetrievalStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -910,10 +850,9 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevLikeEnvironment
     Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
+      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   BearerTokenRetrievalStateMachineFailedMetric:
     Type: AWS::Logs::MetricFilter
@@ -951,6 +890,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Description: Role to allow API gateway to execute step function
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -968,10 +908,6 @@ Resources:
                 Action:
                   - states:StartExecution
                   - states:StartSyncExecution
-      PermissionsBoundary: !If
-        - UsePermissionsBoundary
-        - !Ref PermissionsBoundary
-        - !Ref AWS::NoValue
 
   SuccessTokenGenerationMetric:
     Type: AWS::Logs::MetricFilter
@@ -979,9 +915,9 @@ Resources:
       LogGroupName: !Ref OAuthTokenStateMachineLogGroup
       FilterPattern: '{($.details.name = "Success")}'
       MetricTransformations:
-        - MetricValue: 1
+        - MetricValue: "1"
+          MetricNamespace: otg-hmrc-service
           MetricName: SuccessfulTokenGenerationMetric
-          MetricNamespace: "otg-hmrc-service"
 
   FailTokenGenerationMetric:
     Type: AWS::Logs::MetricFilter
@@ -989,24 +925,24 @@ Resources:
       LogGroupName: !Ref OAuthTokenStateMachineLogGroup
       FilterPattern: '{($.details.name = "Fail")}'
       MetricTransformations:
-        - MetricValue: 1
+        - MetricValue: "1"
+          MetricNamespace: otg-hmrc-service
           MetricName: FailTokenGenerationMetric
-          MetricNamespace: "otg-hmrc-service"
 
-# BackEnd5xxAlarms
+  # BackEnd5xxAlarms
   5XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-5XXErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorAlarm
+      AlarmDescription: !Sub There has been a small proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1046,17 +982,17 @@ Resources:
 
   5XXErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-5XXErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorCriticalAlarm
+      AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 80
@@ -1098,15 +1034,15 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-Token5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorAlarm
+      AlarmDescription: !Sub There has been a small proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1160,15 +1096,15 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-Token5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorCriticalAlarm
+      AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 80
@@ -1218,20 +1154,20 @@ Resources:
             Period: 60
             Stat: Sum
 
-# BackEnd4xxAlarms
+  # BackEnd4xxAlarms
   4XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-4XXErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the otg api-gateway. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-4XXErrorAlarm
+      AlarmDescription: !Sub There has been a small proportion of 4XX errors on the otg api-gateway. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1273,15 +1209,15 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-Token4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-Token4XXApiGwErrorAlarm
+      AlarmDescription: !Sub There has been a small proportion of 4XX errors on the Token endpoint. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1331,20 +1267,20 @@ Resources:
             Period: 60
             Stat: Sum
 
-# BackEndLatencyAlarm
+  # BackEndLatencyAlarm
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-apiGWLatencyAlarm"
-      AlarmDescription: !Sub "There has been increased latency on backend api-gateway. ${SupportManualURL}"
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-apiGWLatencyAlarm
+      AlarmDescription: !Sub There has been increased latency on backend api-gateway. ${SupportManualURL}
       ActionsEnabled: false  # disabled until we're ready for alarm actions to fire
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
+      InsufficientDataActions: []
+      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 2500
