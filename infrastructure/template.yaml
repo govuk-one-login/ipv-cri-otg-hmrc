@@ -373,6 +373,7 @@ Resources:
 
   SandboxOAuthUrlParameter:
     Type: AWS::SSM::Parameter
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/sandbox
       Type: String
@@ -380,7 +381,7 @@ Resources:
       Description: HMRC Sandbox OAuth URL
 
   ProductionOAuthUrlParameter:
-    Condition: IsNotDevLikeEnvironment
+    Condition: IsProdEnvironment
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/production
