@@ -25,7 +25,7 @@ jobs:
         with:
           usage: Stack name
           prefix: preview-otg-hmrc
-          length-limit: 128
+          length-limit: 43
           verbose: false
 
       - name: Delete stack

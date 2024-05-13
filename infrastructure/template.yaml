@@ -865,18 +865,18 @@ Resources:
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
 
   BearerTokenRetrievalStateMachineAlarm:
-    Type: "AWS::CloudWatch::Alarm"
+    Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: "Bearer Token failed 4 or more requests in the last hour"
-      AlarmName: !Sub "${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm"
+      AlarmDescription: Bearer Token failed 4 or more requests in the last hour
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 4
       EvaluationPeriods: 12
-      MetricName: "ExecutionsFailed"
+      MetricName: ExecutionsFailed
       Namespace: AWS/States
       Period: 300
       Statistic: Sum
