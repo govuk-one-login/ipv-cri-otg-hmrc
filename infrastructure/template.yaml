@@ -482,6 +482,40 @@ Resources:
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # BearerTokenHandlerFunction Alarms
+  BearerTokenHandlerFunctionErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: BearerTokenHandlerFunction-Error
+
+  BearerTokenHandlerFunctionErrorAlarm:
+    DependsOn: BearerTokenHandlerFunctionErrorMetricFilter
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-ErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Errors occurs. ${SupportManualURL}
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      InsufficientDataActions: []
+      MetricName: BearerTokenHandlerFunction-Error
+      Namespace: !Sub ${AWS::StackName}/LogMessages
+      Statistic: Sum
+      Dimensions: []
+      Period: 120
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   BearerTokenHandlerFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
