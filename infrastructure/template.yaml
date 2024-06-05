@@ -34,7 +34,9 @@ Conditions:
   IsDevEnvironment: !Equals [!Ref Environment, dev]
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
   IsDevLikeEnvironment: !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsProdOrIntegrationEnvironment: !Or [!Condition IsProdEnvironment, !Equals [!Ref Environment, integration]]
   IsProdEnvironment: !Equals [!Ref Environment, production]
+  IsNotProdOrIntegrationEnvironment: !Not [!Condition IsProdOrIntegrationEnvironment]
   IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
@@ -119,7 +121,7 @@ Globals:
 Resources:
   StubTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
-    Condition: IsNotProdEnvironment
+    Condition: IsNotProdOrIntegrationEnvironment
     Properties:
       Name: !Sub ${AWS::StackName}-stub
       Description: OTG refresh schedule for the stub token
@@ -329,7 +331,7 @@ Resources:
 
   StubOAuthUrlParameter:
     Type: AWS::SSM::Parameter
-    Condition: IsNotProdEnvironment
+    Condition: IsNotProdOrIntegrationEnvironment
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/stub
       Type: String
