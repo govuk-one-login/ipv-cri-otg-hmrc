@@ -29,7 +29,7 @@ paths:
           application/json:
             Fn::Sub: |-
               {
-                "input": "{\"tokenType\": \"$input.params('tokenType').trim()\"}",
+                "input": "{\"tokenType\": \"$util.escapeJavaScript($input.params('tokenType').trim())\"}",
                 "stateMachineArn": "${BearerTokenRetrievalStateMachine.Arn}"
               }
         responses:
