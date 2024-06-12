@@ -41,4 +41,17 @@ describe("bearer-token-retrieval", () => {
     expect(result.httpStatus).toBe(400);
     expect(result.body).toBeUndefined();
   });
+
+  it("should error when tokenType is JavaScript", async () => {
+    const startExecutionResult = await executeExpressStepFunction(
+      output.BearerTokenRetrievalStateMachineArn as string,
+      {
+        tokenType: `<script>alert('Attack!');</script>`,
+      }
+    );
+    const result = JSON.parse(startExecutionResult.output || "");
+
+    expect(result.httpStatus).toBe(400);
+    expect(result.body).toBeUndefined();
+  });
 });
