@@ -26,7 +26,7 @@ Parameters:
   SupportManualURL:
     Description: Link to the OTG support manual
     Type: String
-    Default: https://govukverify.atlassian.net/wiki/spaces/OJ/pages/4090724856/OAuth+Token+Generator+support+runbook
+    Default: "https://team-manual.account.gov.uk/teams/CRI-Orange-team/supporting-cri-orange/hmrc-otg-runbook/"
 
 Conditions:
   EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
@@ -207,7 +207,7 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: Alarm if token refresh queue grows beyond 0 messages
+      AlarmDescription: !Sub Alarm if token refresh queue grows beyond 0 messages. ${SupportManualURL}
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
@@ -291,7 +291,7 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: Alarm if token refresh queue grows beyond 0 messages
+      AlarmDescription: !Sub Alarm if token refresh queue grows beyond 0 messages. ${SupportManualURL}
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
@@ -439,7 +439,7 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-PrivateOTGApi-FatalErrorAlarm
-      AlarmDescription: Trigger an alarm when Fatal Error occurs
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -834,7 +834,7 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: OAuth Token failed 4 or more requests in the last hour
+      AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 4
@@ -907,7 +907,7 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: Bearer Token failed 4 or more requests in the last hour
+      AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 4
