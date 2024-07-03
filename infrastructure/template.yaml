@@ -819,30 +819,30 @@ Resources:
     Properties:
       Role: !GetAtt SecretsManagerHandlerRole.Arn
       Handler: lambdas/secrets-manager-handler/src/secrets-manager-handler.lambdaHandler
-      Policies:
-        - VPCAccessPolicy: {}
-        - Statement:
-            - Sid: EnforceStayinSpecificVpc
-              Effect: Allow
-              Action:
-                - 'lambda:CreateFunction'
-                - 'lambda:UpdateFunctionConfiguration'
-              Resource:
-                - "*"
-              Condition:
-                StringEquals:
-                  "lambda:VpcIds":
-                    - Fn::ImportValue: !Sub ${VpcStackName}-VpcId
-        - Statement:
-            - Effect: Allow
-              Action: secretsmanager:GetSecretValue
-              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
-        - KMSDecryptPolicy:
-            KeyId: !Ref DynamoDBKmsKey
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
       CodeSigningConfigArn:
         !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+#      Policies:
+#        - VPCAccessPolicy: {}
+#        - Statement:
+#            - Sid: EnforceStayinSpecificVpc
+#              Effect: Allow
+#              Action:
+#                - 'lambda:CreateFunction'
+#                - 'lambda:UpdateFunctionConfiguration'
+#              Resource:
+#                - "*"
+#              Condition:
+#                StringEquals:
+#                  "lambda:VpcIds":
+#                    - Fn::ImportValue: !Sub ${VpcStackName}-VpcId
+#        - Statement:
+#            - Effect: Allow
+#              Action: secretsmanager:GetSecretValue
+#              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+#        - KMSDecryptPolicy:
+#            KeyId: !Ref DynamoDBKmsKey
 
   SecretsManagerHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
