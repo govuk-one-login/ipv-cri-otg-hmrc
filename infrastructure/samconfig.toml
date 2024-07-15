@@ -1,14 +1,26 @@
 version = 0.1
+
+[default.build.parameters]
+cached = true
+parallel = true
+
 [default.deploy.parameters]
-stack_name = "otg-hmrc"
-resolve_s3 = true
-s3_prefix = "otg-hmrc"
-region = "eu-west-2"
+stack_name = "<your-name>-otg-hmrc"
+
 capabilities = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
-image_repositories = []
-disable_rollback = true
+fail_on_empty_changeset = false
+confirm_changeset = false
+s3_prefix = "localdev"
+region = "eu-west-2"
+resolve_s3 = true
+
+tags = [
+    "cri:component=ipv-cri-otg-hmrc",
+    "cri:deployment-source=manual",
+    "cri:application=Orange",
+    "cri:stack-type=dev",
+]
+
 parameter_overrides = [
     "Environment=dev",
-    "CommonStackName=common-cri-api",
-    "CodeSigningEnabled=false"
 ]
