@@ -12,7 +12,7 @@ Parameters:
   Environment:
     Type: String
     Default: dev
-    AllowedValues: [dev, build, staging, integration, production]
+    AllowedValues: [localdev, dev, build, staging, integration, production]
   CodeSigningConfigArn:
     Type: String
     Default: ""
@@ -23,6 +23,13 @@ Parameters:
     Description: Set to the string value `true` to deploy alarms in a DEV environment
     Type: String
     Default: "true"
+  VpcStackName:
+    Type: String
+    Default: otg-vpc
+  AllowedVpcEndpointIds:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: The SSM parameter containing the list of VPC endpoints allowed to invoke the private API
+    Default: /otg-hmrc/config/AllowedVPCEndpointIDs
   SupportManualURL:
     Description: Link to the OTG support manual
     Type: String
@@ -89,10 +96,10 @@ Globals:
       !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
     VpcConfig:
       SecurityGroupIds:
-        - !ImportValue otg-vpc-AWSServicesEndpointSecurityGroupId
+        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
       SubnetIds:
-        - !ImportValue otg-vpc-ProtectedSubnetIdA
-        - !ImportValue otg-vpc-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
     Layers:
       - !Sub
         - "{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}"
@@ -405,9 +412,20 @@ Resources:
           - !Ref AWS::NoValue
           - CustomStatements:
               - Effect: Allow
-                Resource: execute-api:/*
                 Action: execute-api:Invoke
+                Resource: execute-api:/*
                 Principal: "*"
+                Condition:
+                  StringEquals:
+                    aws:SourceVpce: !Split
+                      - ","
+                      - !Join
+                        - ","
+                        - - !Ref AllowedVpcEndpointIds
+                          - !If
+                            - IsNotProdOrIntegrationEnvironment
+                            - Fn::ImportValue: !Sub ${VpcStackName}-ExecuteApiGatewayEndpointId
+                            - !Ref AWS::NoValue
 
   PrivateOTGApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
