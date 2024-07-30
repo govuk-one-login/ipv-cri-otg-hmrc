@@ -622,6 +622,40 @@ Resources:
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # TotpGeneratorFunction Alarms
+  TotpGeneratorFunctionErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: TotpGeneratorFunction-Error
+
+  TotpGeneratorFunctionErrorAlarm:
+    DependsOn: TotpGeneratorFunctionErrorMetricFilter
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-ErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Error occurs. ${SupportManualURL}
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      InsufficientDataActions: []
+      MetricName: TotpGeneratorFunction-Error
+      Namespace: !Sub ${AWS::StackName}/LogMessages
+      Statistic: Sum
+      Dimensions: []
+      Period: 120
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   TotpGeneratorFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
