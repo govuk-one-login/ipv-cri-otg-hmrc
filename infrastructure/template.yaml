@@ -22,7 +22,7 @@ Parameters:
   DeployAlarmsInDev:
     Description: Set to the string value `true` to deploy alarms in a DEV environment
     Type: String
-    Default: "true"
+    Default: "false"
   VpcStackName:
     Type: String
     Default: otg-vpc
