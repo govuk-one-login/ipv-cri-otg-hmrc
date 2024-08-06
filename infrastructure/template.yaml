@@ -438,7 +438,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref PrivateOTGApiAccessLogGroup
+      LogGroupName: !Ref RedactedPrivateOTGApiAccessLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   PrivateOTGApiFatalErrorMetricFilter:
@@ -498,7 +498,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
+      LogGroupName: !Ref RedactedBearerTokenHandlerFunctionLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # BearerTokenHandlerFunction Alarms
@@ -618,7 +618,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
+      LogGroupName: !Ref RedactedTotpGeneratorFunctionLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # TotpGeneratorFunction Alarms
@@ -743,7 +743,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref SecretsManagerHandlerFunctionLogGroup
+      LogGroupName: !Ref RedactedSecretsManagerHandlerFunctionLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # SecretsManagerHandlerFunction Alarms
@@ -866,7 +866,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+      LogGroupName: !Ref RedactedOAuthTokenStateMachineLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   OAuthTokenStateMachineFailedMetric:
@@ -939,7 +939,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
+      LogGroupName: !Ref RedactedBearerTokenRetrievalStateMachineLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   BearerTokenRetrievalStateMachineFailedMetric:
@@ -1401,6 +1401,249 @@ Resources:
                   Value: !Sub ${AWS::StackName}-private
             Period: 60
             Stat: Maximum
+
+#############
+# Redaction #
+#############
+  InvokeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+
+  LogRedactionFunctionCloudWatchPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LogRedactionFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: !Join [ ".", [ "logs", !Ref "AWS::Region", "amazonaws.com" ] ]
+      SourceAccount: !Ref AWS::AccountId
+
+  LogRedactionFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Sourcemap: true
+    Properties:
+      Handler: lambdas/log-redaction/src/redact-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Sub /aws/lambda/${AWS::StackName}/LogRedactionFunction
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action: logs:*
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action: lambda:*
+            Resource: "*"
+
+  LogRedactionFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/LogRedactionFunction
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  LogRedactionFunctionErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref LogRedactionFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: LogRedactionFunction-Error
+
+  LogRedactionFunctionErrorAlarm:
+    DependsOn: LogRedactionFunctionErrorMetricFilter
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-ErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Errors occurs. ${SupportManualURL}
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      InsufficientDataActions: []
+      MetricName: LogRedactionFunction-Error
+      Namespace: !Sub ${AWS::StackName}/LogMessages
+      Statistic: Sum
+      Dimensions: []
+      Period: 120
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  LogRedactionFunctionFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref LogRedactionFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
+          MetricName: LogRedactionFunction-FatalError
+
+  LogRedactionFunctionFatalErrorAlarm:
+    DependsOn: LogRedactionFunctionFatalErrorMetricFilter
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-FatalErrorAlarm
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      InsufficientDataActions: []
+      MetricName: LogRedactionFunction-FatalError
+      Namespace: !Sub ${AWS::StackName}/LogMessages
+      Statistic: Sum
+      Dimensions: []
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  LogRedactionFunctionThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-critical-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-critical-alert-topic
+      InsufficientDataActions: []
+      AlarmDescription: !Sub Trigger if the ${LogRedactionFunction} lambda throttles. ${SupportManualURL}
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-throttles
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LogRedactionFunction
+      TreatMissingData: notBreaching
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ###################################
+  # Log Groups for Slunk (Redacted) #
+  ###################################
+  RedactedBearerTokenHandlerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction-redacted
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  BearerTokenHandlerFunctionLogsSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
+
+  RedactedTotpGeneratorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction-redacted
+      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+
+  TotpGeneratorFunctionLogsSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
+
+  RedactedSecretsManagerHandlerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction-redacted
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  SecretsManagerHandlerFunctionLogsSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref SecretsManagerHandlerFunctionLogGroup
+
+  RedactedOAuthTokenStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs-redacted
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  OAuthTokenStateMachineLogsSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref OAuthTokenStateMachineLogGroup
+
+  RedactedBearerTokenRetrievalStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrieval-state-machine-logs-redacted
+      RetentionInDays: !If [ IsDevLikeEnvironment, 7, 30 ]
+
+  BearerTokenRetrievalStateMachineSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
+
+  RedactedPrivateOTGApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs-redacted
+      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+
+  PrivateOTGApiAccessLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    Properties:
+      FilterName: "Redaction"
+      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      FilterPattern: ""
+      LogGroupName: !Ref PrivateOTGApiAccessLogGroup
 
 Outputs:
   PrivateApiGatewayId:
