@@ -1402,28 +1402,9 @@ Resources:
             Period: 60
             Stat: Maximum
 
-#############
-# Redaction #
-#############
-  InvokeLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
-
+  #############
+  # Redaction #
+  #############
   LogRedactionFunctionCloudWatchPermissions:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1553,7 +1534,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
   ###################################
-  # Log Groups for Slunk (Redacted) #
+  # Log Groups for Splunk (Redacted) #
   ###################################
   RedactedBearerTokenHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
