@@ -431,7 +431,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   PrivateOTGApiAccessLogSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -491,7 +491,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   BearerTokenHandlerFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -611,7 +611,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: 30
 
   TotpGeneratorFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -736,7 +736,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   SecretsManagerHandlerFunctionSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -859,7 +859,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -932,7 +932,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrieval-state-machine-logs
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: 30
 
   BearerTokenRetrievalStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -1457,7 +1457,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/LogRedactionFunction
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   LogRedactionFunctionErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -1559,7 +1559,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction-redacted
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   BearerTokenHandlerFunctionLogsSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1574,7 +1574,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction-redacted
-      RetentionInDays: !If [IsDevLikeEnvironment, 7, 30]
+      RetentionInDays: 30
 
   TotpGeneratorFunctionLogsSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1589,7 +1589,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction-redacted
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   SecretsManagerHandlerFunctionLogsSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1604,7 +1604,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs-redacted
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   OAuthTokenStateMachineLogsSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1619,7 +1619,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-BearerTokenRetrieval-state-machine-logs-redacted
-      RetentionInDays: !If [ IsDevLikeEnvironment, 7, 30 ]
+      RetentionInDays: 30
 
   BearerTokenRetrievalStateMachineSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1634,7 +1634,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs-redacted
-      RetentionInDays: !If [IsProdEnvironment, 30, 7]
+      RetentionInDays: 30
 
   PrivateOTGApiAccessLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
