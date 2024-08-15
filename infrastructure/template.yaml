@@ -696,9 +696,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-throttles
@@ -787,9 +787,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${SecretsManagerHandlerFunction} lambda throttles. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-throttles
@@ -1075,10 +1075,10 @@ Resources:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorCriticalAlarm
       AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
+      OKActions:
+        - !ImportValue core-infrastructure-AlarmTopic
       InsufficientDataActions: []
       Dimensions: []
       EvaluationPeriods: 5
@@ -1187,10 +1187,10 @@ Resources:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorCriticalAlarm
       AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
+      OKActions:
+        - !ImportValue core-infrastructure-AlarmTopic
       InsufficientDataActions: []
       Dimensions: []
       EvaluationPeriods: 5
