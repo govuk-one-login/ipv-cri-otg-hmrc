@@ -883,9 +883,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
@@ -956,9 +956,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue core-infrastructure-AlarmTopic
       AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
