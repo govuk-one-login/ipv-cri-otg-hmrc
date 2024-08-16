@@ -697,8 +697,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-throttles
@@ -788,8 +790,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${SecretsManagerHandlerFunction} lambda throttles. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-SecretsManagerHandlerFunction-throttles
@@ -884,8 +888,10 @@ Resources:
     Properties:
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
@@ -957,8 +963,10 @@ Resources:
     Properties:
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
@@ -1077,8 +1085,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       Dimensions: []
       EvaluationPeriods: 5
@@ -1189,8 +1199,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
         - !ImportValue core-infrastructure-AlarmTopic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       Dimensions: []
       EvaluationPeriods: 5
