@@ -58,7 +58,7 @@ export class RedactHandler implements LambdaInterface {
             logStreamName: logStream,
             logEvents: logEvents.logEvents.map((event) => ({
               id: event.id,
-              message: JSON.stringify(JSON.parse(event.message), null, 2),
+              message: this.formatMessage(event.message),
               timestamp: event.timestamp,
               extractedFields: event.extractedFields,
             })),
@@ -77,6 +77,14 @@ export class RedactHandler implements LambdaInterface {
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`Error in RedactHandler: ${message}`);
       throw error;
+    }
+  }
+
+  private formatMessage(message: string) {
+    try {
+      return JSON.stringify(JSON.parse(message), null, 2);
+    } catch (error) {
+      return message;
     }
   }
 }
