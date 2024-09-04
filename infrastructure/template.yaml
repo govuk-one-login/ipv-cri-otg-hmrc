@@ -696,8 +696,10 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}
@@ -787,8 +789,10 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       AlarmDescription: !Sub Trigger if the ${SecretsManagerHandlerFunction} lambda throttles. ${SupportManualURL}
@@ -883,9 +887,11 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
       AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
@@ -956,9 +962,11 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
       AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
@@ -1075,9 +1083,11 @@ Resources:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorCriticalAlarm
       AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       Dimensions: []
@@ -1187,9 +1197,11 @@ Resources:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorCriticalAlarm
       AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-critical-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       Dimensions: []
