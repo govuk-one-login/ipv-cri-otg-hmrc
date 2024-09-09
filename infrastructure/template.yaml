@@ -13,12 +13,6 @@ Parameters:
     Type: String
     Default: dev
     AllowedValues: [localdev, dev, build, staging, integration, production]
-  VpcStackName:
-    Description: >
-      The name of the stack that defines the VPC in which this container will
-      run.
-    Type: String
-    Default: otg-vpc
   CodeSigningConfigArn:
     Type: String
     Default: ""
@@ -721,130 +715,80 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  SecretsManagerHandlerRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      Description: IAM Role For SecretsManagerHandler Function
-      RoleName: !Sub "${AWS::StackName}-SecretsManagerHandler"
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-            Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSLambdaExecute
-        - !Ref SecretsManagerHandlerRolePolicy
-      Tags:
-        - Key: Name
-          Value: !Join
-            - "-"
-            - - !Ref AWS::StackName
-              - "SecretsManagerHandlerRole"
-        - Key: Service
-          Value: "ci/cd"
-        - Key: Source
-          Value: "govuk-one-login/di-ipv-cri-otg-hmrc/infrastructure/template.yaml"
-
-  SecretsManagerHandlerRolePolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      # checkov:skip=CKV_AWS_111: Not applicable here
-      ManagedPolicyName:
-        Fn::Join:
-          - "-"
-          - - !Ref AWS::StackName
-            - "SecretsManagerHandlerRolePolicy"
-            - Fn::Select:
-                - 4
-                - Fn::Split:
-                    - "-"
-                    - Fn::Select:
-                        - 2
-                        - Fn::Split:
-                            - "/"
-                            - Ref: AWS::StackId
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: EnforceStayinSpecificVpc
-            Effect: Allow
-            Action:
-              - 'lambda:CreateFunction'
-              - 'lambda:UpdateFunctionConfiguration'
-            Resource:
-              - "*"
-            Condition:
-              StringEquals:
-                "lambda:VpcIds":
-                  - Fn::ImportValue: !Sub ${VpcStackName}-VpcId
-          - Sid: OrganizationsListAccountsPolicy
-            Effect: Allow
-            Action:
-              - "organizations:ListAccounts"
-            Resource:
-              - "*"
-          - Sid: VPCAccessPolicy
-            Effect: Allow
-            Action:
-              - "ec2:CreateNetworkInterface"
-              - "ec2:DeleteNetworkInterface"
-              - "ec2:DescribeNetworkInterfaces"
-              - "ec2:DetachNetworkInterface"
-            Resource:
-              - "*"
-          - Sid: KMSDecryptPolicy
-            Effect: Allow
-            Action: "kms:Decrypt"
-            Resource:
-              Fn::Sub:
-                - "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${keyId}"
-                - keyId: !Ref SecretsManagerHandlerEncryptionKey
-          - Sid: AWSSecretsManagerGetSecretValuePolicy
-            Effect: Allow
-            Action: "secretsmanager:GetSecretValue"
-            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
-
   SecretsManagerHandlerEncryptionKey:
+    Condition: IsProdEnvironment
     Type: AWS::KMS::Key
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Description: Symmetric key used to encrypt secrets manager token
+      Description: Symmetric key used to encrypt secrets manager token. Used with an alias.
       EnableKeyRotation: true
       KeySpec: SYMMETRIC_DEFAULT
       KeyPolicy:
         Version: '2012-10-17'
         Statement:
-          - Sid: 'SecretsManagerAccess'
+          - Sid: AccessForGithubAndPipelineRoles
             Effect: Allow
+            Resource: "*"
+            Action: "kms:*"
             Principal:
-              Service: secretsmanager.amazonaws.com
-            Action:
-              - "kms:Encrypt*"
-              - "kms:Decrypt*"
-              - "kms:ReEncrypt*"
-              - "kms:GenerateDataKey*"
-              - "kms:Describe*"
-            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+              AWS: "*"
             Condition:
-              StringEquals:
-                "kms:CallerAccount": !Sub "${AWS::AccountId}"
-          - Sid: 'SecretsManagerFunctionRoleAccess'
+              StringLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+          - Sid: AccessForStateMachine
             Effect: Allow
+            Resource: "*"
             Principal:
-              AWS: !Sub "arn:aws:iam:${AWS::Region}:${AWS::AccountId}:role/${AWS::StackName}-SecretsManagerHandler"
+              AWS: [!GetAtt OAuthTokenStateMachineRole.Arn, !GetAtt LogRedactionFunctionRole.Arn]
             Action:
-              - "kms:Decrypt*"
-            Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
+            - "kms:Encrypt*"
+            - "kms:Decrypt*"
+            - "kms:ReEncrypt*"
+            - "kms:GenerateDataKey*"
+            - "kms:Describe*"
+          - Sid: AccessForLogs
+            Effect: Allow
+            Resource: "*"
+            Principal:
+              Service: logs.eu-west-2.amazonaws.com
+            Action:
+            - "kms:Encrypt*"
+            - "kms:Decrypt*"
+            - "kms:ReEncrypt*"
+            - "kms:GenerateDataKey*"
+            - "kms:Describe*"
             Condition:
-              StringEquals:
-                "kms:CallerAccount": !Sub "${AWS::AccountId}"
-                "kms:KeyUsage": "ENCRYPT_DECRYPT"
-                "kms:ViaService":
-                  - !Sub "lambda.${AWS::Region}.amazonaws.com"
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn":
+                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+          - Sid: ElevatedAdminAccess
+            Effect: Allow
+            Resource: "*"
+            Action: "kms:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+          - Sid: DenyAllOthers
+            Effect: Deny
+            Resource: "*"
+            Action: "kms:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !GetAtt LogRedactionFunctionRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+              ArnNotLike:
+                "kms:EncryptionContext:aws:logs:arn":
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
       Tags:
         - Key: Name
           Value: !Join
@@ -858,9 +802,82 @@ Resources:
 
   SecretsManagerHandlerEncryptionKeyAlias:
     Type: AWS::KMS::Alias
+    Condition: IsProdEnvironment
     Properties:
-      AliasName: !Sub alias/secretsmanager/token
-      TargetKeyId: !Ref SecretsManagerHandlerEncryptionKey
+      AliasName: !Sub alias/secretsmanager/token-${AWS::StackName}
+      TargetKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
+
+  TOTPSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}
+      SecretString: ABCDEFGHIJKLMNOP #PLACEHOLDER - secret will be updated manually by a tech lead.
+      KmsKeyId: !If [IsProdEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
+
+  ClientId:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}
+      SecretString: stub #PLACEHOLDER - secret will be updated manually by a tech lead.
+
+  ClientSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}
+      SecretString: 11111-1111-1111-111111111111 #PLACEHOLDER - secret will be updated manually by a tech lead.
+
+  TOTPSecretPolicy:
+    Condition: IsProdEnvironment
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      BlockPublicPolicy: false
+      SecretId: !GetAtt TOTPSecret.Id
+      ResourcePolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AccessForGithubAndPipelineRoles
+            Effect: Allow
+            Resource: "*"
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+          - Sid: AllowStateMachine
+            Effect: "Allow"
+            Resource: "*"
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !GetAtt OAuthTokenStateMachineRole.Arn
+          - Sid: ElevatedAdminAccess
+            Effect: Allow
+            Resource: "*"
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+          - Sid: DenyAllOthers
+            Effect: "Deny"
+            Resource: "*"
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
 
   SecretsManagerHandlerFunction:
     Type: AWS::Serverless::Function
@@ -869,32 +886,15 @@ Resources:
       BuildProperties:
         Sourcemap: true
     Properties:
-      Role: !GetAtt SecretsManagerHandlerRole.Arn
       Handler: lambdas/secrets-manager-handler/src/secrets-manager-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Policies:
-        - VPCAccessPolicy: {}
-        - Statement:
-            - Sid: EnforceStayinSpecificVpc
-              Effect: Allow
-              Action:
-                - 'lambda:CreateFunction'
-                - 'lambda:UpdateFunctionConfiguration'
-              Resource:
-                - "*"
-              Condition:
-                StringEquals:
-                  "lambda:VpcIds":
-                    - Fn::ImportValue: !Sub ${VpcStackName}-VpcId
         - Statement:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
               Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/BearerToken/*
-        - KMSDecryptPolicy:
-            KeyId: !Ref DynamoDBKmsKey
-      LoggingConfig:
-        LogGroup: !Sub /aws/lambda/${AWS::StackName}/SecretsManagerHandlerFunction
-      CodeSigningConfigArn:
-        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
 
   SecretsManagerHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1024,6 +1024,7 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs
       RetentionInDays: 30
+      KmsKeyId: !If [IsProdEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
