@@ -5,7 +5,7 @@ cached = true
 parallel = true
 
 [default.deploy.parameters]
-stack_name = "<your-name>-otg-hmrc"
+stack_name = "IPS-665b-otg-hmrc"
 
 capabilities = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
 fail_on_empty_changeset = false
