@@ -818,7 +818,7 @@ Resources:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}
       SecretString: ABCDEFGHIJKLMNOP #PLACEHOLDER - secret will be updated manually by a tech lead.
       KmsKeyId: !If [IsDevEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
-      Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
+      Description: "TOTP Secret - encrypted via CMK, with access permissions restricted in the production environment"
 
   ClientId:
     Type: AWS::SecretsManager::Secret
@@ -826,7 +826,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/ClientId/${AWS::StackName}
-      SecretString: stub #PLACEHOLDER - secret will be updated manually by a tech lead.
+      SecretString: stub-deployed-from-template-edited-in-template-again #PLACEHOLDER - secret will be updated manually by a tech lead.
 
   ClientSecret:
     Type: AWS::SecretsManager::Secret
@@ -845,17 +845,17 @@ Resources:
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
-          - Sid: AccessForGithubAndPipelineRoles
-            Effect: Allow
-            Resource: "*"
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: "*"
-            Condition:
-              StringLike:
-                "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+          # - Sid: AccessForGithubAndPipelineRoles
+          #   Effect: Allow
+          #   Resource: "*"
+          #   Action: "secretsmanager:*"
+          #   Principal:
+          #     AWS: "*"
+          #   Condition:
+          #     StringLike:
+          #       "aws:PrincipalArn":
+          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
           - Sid: AllowStateMachine
             Effect: "Allow"
             Resource: "*"
