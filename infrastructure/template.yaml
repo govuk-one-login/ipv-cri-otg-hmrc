@@ -816,7 +816,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}
-      SecretString: ABCDEFGHIJKLMNOP #PLACEHOLDER - secret will be updated manually by a tech lead.
+      SecretString: ABCDEFGHIJKLMNOPQRSTUVWX #PLACEHOLDER - secret will be updated manually by a tech lead.
       KmsKeyId: !If [IsDevEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
       Description: "TOTP Secret - encrypted via CMK, with access permissions restricted in the production environment"
 
@@ -845,30 +845,43 @@ Resources:
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
-          # - Sid: AccessForGithubAndPipelineRoles
-          #   Effect: Allow
-          #   Resource: "*"
-          #   Action: "secretsmanager:*"
-          #   Principal:
-          #     AWS: "*"
-          #   Condition:
-          #     StringLike:
-          #       "aws:PrincipalArn":
-          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+          - Sid: AccessForGithubAndPipelineRoles
+            Effect: Allow
+            Resource: "*"
+            Action:
+            - "secretsmanager:ListSecrets"
+            - "secretsmanager:CreateSecret"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
           - Sid: AllowStateMachine
             Effect: "Allow"
             Resource: "*"
-            Action: "secretsmanager:*"
+            Action:
+            - "secretsmanager:GetSecretValue"
+            - "secretsmanager:DescribeSecret"
             Principal:
               AWS: !GetAtt OAuthTokenStateMachineRole.Arn
+          - Sid: LimitedAdminAccess
+            Effect: Deny
+            Resource: "*"
+            NotAction:
+            - "secretsmanager:ListSecrets"
+            - "secretsmanager:CreateSecret"
+            - "secretsmanager:GetSecretValue"
+            Principal:
+              AWS:
+              - !Sub "arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AWSAdministratorAccess_5934aae60345dc2b"
           - Sid: ElevatedAdminAccess
             Effect: Allow
             Resource: "*"
             Action: "secretsmanager:*"
             Principal:
               AWS:
-              - !Sub "arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AWSAdministratorAccess_5934aae60345dc2b"
               - arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-sre-support-identity-admin_6d517d0482643388
           - Sid: DenyAllOthers
             Effect: "Deny"
