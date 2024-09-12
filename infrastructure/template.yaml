@@ -816,7 +816,6 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}
-      SecretString: ABCDEFGHIJKLMNOP #PLACEHOLDER - secret will be updated manually by a tech lead.
       KmsKeyId: !If [IsDevEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
       Description: "TOTP Secret - encrypted via CMK, with access permissions restricted in the production environment"
 
