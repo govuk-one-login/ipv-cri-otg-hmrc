@@ -810,37 +810,93 @@ Resources:
       AliasName: !Sub alias/secretsmanager/token-${AWS::StackName}
       TargetKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
 
-  TOTPSecret:
+  ###########
+  # Secrets #
+  ###########
+
+  Fn::ForEach::SecretCreation:
+      - SecretToCreate
+      - - BearerToken
+        - ClientId ##ClientSecret, TOTPSecret
+      - '${SecretToCreate}Stub':
+          Type: AWS::SecretsManager::Secret
+          Condition: IsNotProdOrIntegrationEnvironment
+          Properties:
+            Name: !Sub HMRC/${SecretToCreate}/${AWS::StackName}/fn-stub
+      # - '${SecretToCreate}/sandbox':
+      #     Type: AWS::SecretsManager::Secret
+      #     Condition: IsNotProdEnvironment
+      #     Properties:
+      #       Name: !Sub HMRC/${SecretToCreate}/${AWS::StackName}/fn-sandbox
+
+  # TOTPSecretStub:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdOrIntegrationEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/stub
+
+  # ClientIdStub:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdOrIntegrationEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/ClientId/${AWS::StackName}/stub
+
+  # ClientSecretStub:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdOrIntegrationEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/ClientSecret/${AWS::StackName}/stub
+
+  # TOTPSecretSandbox:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
+
+  # ClientIdSandbox:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/ClientId/${AWS::StackName}/sandbox
+
+  # ClientSecretSandbox:
+  #   Type: AWS::SecretsManager::Secret
+  #   Condition: IsNotProdEnvironment
+  #   Properties:
+  #     Name: !Sub HMRC/ClientSecret/${AWS::StackName}/sandbox
+
+  TOTPSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    #Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub HMRC/TOTPSecret/${Environment}
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/production
       KmsKeyId: !If [IsDevEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
-      Description: "TOTP Secret - encrypted via CMK, with access permissions restricted in the production environment"
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
 
-  ClientId:
+  ClientIdProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    #Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub HMRC/ClientId/${Environment}
-      SecretString: stub-deployed-from-template-edited-in-template-again #PLACEHOLDER - secret will be updated manually by a tech lead.
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/production
 
-  ClientSecret:
+  ClientSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    #Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub HMRC/ClientSecret/${Environment}
-      SecretString: 11111-1111-1111-111111111111 #PLACEHOLDER - secret will be updated manually by a tech lead.
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/production
 
   TOTPSecretPolicy:
     Condition: IsDevEnvironment
     Type: AWS::SecretsManager::ResourcePolicy
     Properties:
       BlockPublicPolicy: false
-      SecretId: !GetAtt TOTPSecret.Id
+      SecretId: !GetAtt TOTPSecretProduction.Id
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
