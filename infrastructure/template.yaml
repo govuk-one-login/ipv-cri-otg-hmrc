@@ -736,8 +736,8 @@ Resources:
             Condition:
               StringLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-02579883d3f4"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-91v16PTZUSg"
           - Sid: AccessForStateMachine
             Effect: Allow
             Resource: "*"
@@ -782,8 +782,8 @@ Resources:
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-02579883d3f4"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-91v16PTZUSg"
                   - !GetAtt OAuthTokenStateMachineRole.Arn
                   - !GetAtt LogRedactionFunctionRole.Arn
                   - !Sub "arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AWSAdministratorAccess_5934aae60345dc2b"
@@ -853,8 +853,8 @@ Resources:
             Condition:
               StringLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-02579883d3f4"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-91v16PTZUSg"
           # - Sid: LimitedPipelineAccess
           #   Effect: Deny
           #   Resource: "*"
@@ -866,8 +866,8 @@ Resources:
           #   Condition:
           #     StringLike:
           #       "aws:PrincipalArn":
-          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-02579883d3f4"
+          #         - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-91v16PTZUSg"
           - Sid: AllowStateMachine
             Effect: "Allow"
             Resource: "*"
@@ -902,8 +902,8 @@ Resources:
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-02579883d3f4"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc-91v16PTZUSg"
                   - !GetAtt OAuthTokenStateMachineRole.Arn
                   - !Sub "arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AWSAdministratorAccess_5934aae60345dc2b"
                   - arn:aws:iam::366077495114:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-sre-support-identity-admin_6d517d0482643388
