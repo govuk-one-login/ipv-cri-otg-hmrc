@@ -1,12 +1,20 @@
 {
   "Comment": "Retrieves HMRC Bearer Token and Expiry",
-  "StartAt": "Fetch Bearer Token",
+  "StartAt": "Get StackName",
   "States": {
+    "Get StackName": {
+      "Type": "Pass",
+      "Parameters": {
+        "value": "${StackName}"
+      },
+      "ResultPath": "$.StackName",
+      "Next": "Fetch Bearer Token"
+    },
     "Fetch Bearer Token": {
       "Type": "Task",
       "Next": "Token and Expiry",
       "Parameters": {
-        "SecretId.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)"
+        "SecretId.$": "States.Format('HMRC/BearerToken/{}/{}', $.StackName.value, $.tokenType)"
       },
       "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
       "Catch": [

@@ -7,26 +7,26 @@
       "Next": "Success",
       "Branches": [
         {
-          "StartAt": "Fetch TOTP Secret",
+          "StartAt": "Get StackName",
           "States": {
-            "Fetch TOTP Secret": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/TOTPSecret/{}', $.tokenType)"
-              },
-              "ResultSelector": {
-                "SecretString.$": "$.SecretString"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.totpSecret",
-              "Next": "Get StackName"
-            },
             "Get StackName": {
               "Type": "Pass",
               "Parameters": {
                 "value": "${StackName}"
               },
               "ResultPath": "$.StackName",
+              "Next": "Fetch TOTP Secret"
+            },
+            "Fetch TOTP Secret": {
+              "Type": "Task",
+              "Parameters": {
+                "SecretId.$": "States.Format('HMRC/TOTPSecret/{}/{}', $.StackName.value, $.tokenType)"
+              },
+              "ResultSelector": {
+                "SecretString.$": "$.SecretString"
+              },
+              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+              "ResultPath": "$.totpSecret",
               "Next": "Generate TOTP Code"
             },
             "Generate TOTP Code": {
@@ -60,7 +60,7 @@
             "Fetch HMRC Client Id": {
               "Type": "Task",
               "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientId/{}', $.tokenType)"
+                "SecretId.$": "States.Format('HMRC/ClientId/{}/{}', $.StackName.value, $.tokenType)"
               },
               "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
               "ResultPath": "$.clientId",
@@ -69,7 +69,7 @@
             "Fetch HMRC Client Secret": {
               "Type": "Task",
               "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientSecret/{}', $.tokenType)"
+                "SecretId.$": "States.Format('HMRC/ClientSecret/{}/{}',$.StackName.value, $.tokenType)"
               },
               "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
               "ResultPath": "$.clientSecret",
@@ -122,7 +122,7 @@
             "Store Bearer Token": {
               "Type": "Task",
               "Parameters": {
-                "SecretId.$": "States.Format('HMRC/BearerToken/{}', $.tokenType)",
+                "SecretId.$": "States.Format('HMRC/BearerToken/{}/{}', $.StackName.value, $.tokenType)",
                 "SecretString.$": "$.response.Payload"
               },
               "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",

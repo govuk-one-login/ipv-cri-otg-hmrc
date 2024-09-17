@@ -1138,10 +1138,10 @@ Resources:
   OAuthTokenStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+      # OKActions:
+      #   - !ImportValue platform-alarm-warning-alert-topic
+      # AlarmActions:
+      #   - !ImportValue platform-alarm-warning-alert-topic
       AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
@@ -1166,6 +1166,7 @@ Resources:
       PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
         SecretsManagerHandlerFunctionArn: !GetAtt SecretsManagerHandlerFunction.Arn
+        StackName: !Ref AWS::StackName
       Logging:
         Destinations:
           - CloudWatchLogsLogGroup:
@@ -1211,10 +1212,10 @@ Resources:
   BearerTokenRetrievalStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+      # OKActions:
+      #   - !ImportValue platform-alarm-warning-alert-topic
+      # AlarmActions:
+      #   - !ImportValue platform-alarm-warning-alert-topic
       AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
