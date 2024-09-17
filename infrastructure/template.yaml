@@ -814,82 +814,88 @@ Resources:
   # Secrets #
   ###########
 
-  Fn::ForEach::SecretCreation:
-      - SecretToCreate
-      - - BearerToken
-        - ClientId ##ClientSecret, TOTPSecret
-      - '${SecretToCreate}Stub':
-          Type: AWS::SecretsManager::Secret
-          Condition: IsNotProdOrIntegrationEnvironment
-          Properties:
-            Name: !Sub HMRC/${SecretToCreate}/${AWS::StackName}/fn-stub
-      # - '${SecretToCreate}/sandbox':
-      #     Type: AWS::SecretsManager::Secret
-      #     Condition: IsNotProdEnvironment
-      #     Properties:
-      #       Name: !Sub HMRC/${SecretToCreate}/${AWS::StackName}/fn-sandbox
+  BearerTokenStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/stub
+      SecretString: "{\"token\":\"goodToken\",\"tokenExpiry\":\"1726568475877\",\"tokenExpiryInMinutes\":\"120\"}"
 
-  # TOTPSecretStub:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdOrIntegrationEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/stub
+  BearerTokenSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/sandbox
 
-  # ClientIdStub:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdOrIntegrationEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/ClientId/${AWS::StackName}/stub
+  BearerTokenProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    # Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/production
 
-  # ClientSecretStub:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdOrIntegrationEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/ClientSecret/${AWS::StackName}/stub
+  ClientIdStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/stub
 
-  # TOTPSecretSandbox:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
+  ClientIdSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/sandbox
 
-  # ClientIdSandbox:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/ClientId/${AWS::StackName}/sandbox
+  ClientIdProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    # Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/production
 
-  # ClientSecretSandbox:
-  #   Type: AWS::SecretsManager::Secret
-  #   Condition: IsNotProdEnvironment
-  #   Properties:
-  #     Name: !Sub HMRC/ClientSecret/${AWS::StackName}/sandbox
+  ClientSecretStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/stub
+
+  ClientSecretSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/sandbox
+
+  ClientSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    # Condition: IsProdEnvironment
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/production
+
+  TOTPSecretStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/stub
+
+  TOTPSecretSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
 
   TOTPSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
-    #Condition: IsProdEnvironment
+    # Condition: IsProdEnvironment
     # DeletionPolicy: Retain
     # UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/production
       KmsKeyId: !If [IsDevEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
       Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
-
-  ClientIdProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
-    Type: AWS::SecretsManager::Secret
-    #Condition: IsProdEnvironment
-    # DeletionPolicy: Retain
-    # UpdateReplacePolicy: Retain
-    Properties:
-      Name: !Sub HMRC/ClientId/${AWS::StackName}/production
-
-  ClientSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
-    Type: AWS::SecretsManager::Secret
-    #Condition: IsProdEnvironment
-    # DeletionPolicy: Retain
-    # UpdateReplacePolicy: Retain
-    Properties:
-      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/production
 
   TOTPSecretPolicy:
     Condition: IsDevEnvironment
