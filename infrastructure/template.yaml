@@ -902,7 +902,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 0
-      TreatMissingData: missing
+      TreatMissingData: notBreaching
       Dimensions:
         - Name: StateMachineArn
           Value: !Ref OAuthTokenStateMachine
@@ -977,7 +977,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 0
-      TreatMissingData: missing
+      TreatMissingData: notBreaching
       Dimensions:
         - Name: StateMachineArn
           Value: !Ref BearerTokenRetrievalStateMachine
