@@ -10,7 +10,8 @@
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
           "Store Bearer Token": "StoreBearerTokenSuccess",
-          "Update Scheduler Time": "UpdateScheduleTimeSuccess"
+          "Update Scheduler Time": "UpdateScheduleTimeSuccess",
+          "Get StackName":"GetStackName"
         },
         "HappyOnLastTry": {
           "Fetch HMRC Client Id": "FetchClientIdSuccess",
@@ -20,7 +21,8 @@
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
           "Store Bearer Token": "StoreBearerTokenSuccess",
-          "Update Scheduler Time": "UpdateScheduleTimeSuccess"
+          "Update Scheduler Time": "UpdateScheduleTimeSuccess",
+          "Get StackName":"GetStackName"
         },
         "hmrcAPIFail": {
           "Fetch HMRC Client Id": "FetchClientIdSuccess",
@@ -28,7 +30,8 @@
           "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
           "Generate TOTP Code": "GenerateTOTPSuccess",
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail"
+          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail",
+          "Get StackName":"GetStackName"
         }
       }
     }
@@ -38,6 +41,13 @@
       "0": {
         "Return": {
           "SecretString": "dummy-value"
+        }
+      }
+    },
+    "GetStackName": {
+      "0": {
+        "Return": {
+          "value": "dummy-value"
         }
       }
     },
