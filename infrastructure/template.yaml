@@ -890,7 +890,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/production
-      KmsKeyId: GetAtt SecretsManagerHandlerEncryptionKey.Arn
+      KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
       Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
 
   TOTPSecretPolicy:
