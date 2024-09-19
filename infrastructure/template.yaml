@@ -717,6 +717,222 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+  SecretsManagerHandlerEncryptionKey:
+    Condition: IsProdEnvironment
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: Symmetric key used to encrypt secrets manager token. Used with an alias.
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AccessForPipelineRole
+            Effect: Allow
+            Resource: "*"
+            Action: "kms:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+          - Sid: AccessForStateMachine
+            Effect: Allow
+            Resource: "*"
+            Principal:
+              AWS: [!GetAtt OAuthTokenStateMachineRole.Arn, !GetAtt LogRedactionFunctionRole.Arn]
+            Action:
+            - "kms:Encrypt*"
+            - "kms:Decrypt*"
+            - "kms:ReEncrypt*"
+            - "kms:GenerateDataKey*"
+            - "kms:Describe*"
+          - Sid: AccessForLogs
+            Effect: Allow
+            Resource: "*"
+            Principal:
+              Service: logs.eu-west-2.amazonaws.com
+            Action:
+            - "kms:Encrypt*"
+            - "kms:Decrypt*"
+            - "kms:ReEncrypt*"
+            - "kms:GenerateDataKey*"
+            - "kms:Describe*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn":
+                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+          - Sid: ElevatedAdminAccess
+            Effect: Allow
+            Resource: "*"
+            Action: "kms:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+          - Sid: DenyAllOthers
+            Effect: Deny
+            Resource: "*"
+            Action: "kms:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !GetAtt LogRedactionFunctionRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+              ArnNotLike:
+                "kms:EncryptionContext:aws:logs:arn":
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+      Tags:
+        - Key: Name
+          Value: !Join
+            - "-"
+            - - !Ref AWS::StackName
+              - "SecretsManagerHandlerEncryptionKey"
+        - Key: Service
+          Value: "ci/cd"
+        - Key: Source
+          Value: "govuk-one-login/di-ipv-cri-otg-hmrc/infrastructure/template.yaml"
+
+  SecretsManagerHandlerEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsProdEnvironment
+    Properties:
+      AliasName: !Sub alias/secretsmanager/token-${AWS::StackName}
+      TargetKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
+
+  ###########
+  # Secrets #
+  ###########
+
+  BearerTokenStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/stub
+      SecretString: "{\"token\":\"goodToken\",\"tokenExpiry\":\"1726568475877\",\"tokenExpiryInMinutes\":\"120\"}"
+
+  BearerTokenSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/sandbox
+
+  BearerTokenProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    Condition: IsProdEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/production
+
+  ClientIdStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/stub
+      SecretString: stub
+
+  ClientIdSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/sandbox
+
+  ClientIdProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    Condition: IsProdEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/production
+
+  ClientSecretStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/stub
+      SecretString: 11111-1111-1111-111111111111
+
+  ClientSecretSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/sandbox
+
+  ClientSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    Condition: IsProdEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/production
+
+  TOTPSecretStub:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/stub
+      SecretString: ABCDEFGHIJKLMNOP
+
+  TOTPSecretSandbox:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdEnvironment
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
+
+  TOTPSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
+    Type: AWS::SecretsManager::Secret
+    Condition: IsProdEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/production
+      KmsKeyId: GetAtt SecretsManagerHandlerEncryptionKey.Arn
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
+
+  TOTPSecretPolicy:
+    Condition: IsProdEnvironment
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      BlockPublicPolicy: false
+      SecretId: !GetAtt TOTPSecretProduction.Id
+      ResourcePolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AccessForPipelineRole
+            Effect: Allow
+            Resource: !Ref TOTPSecretProduction
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+          - Sid: AllowStateMachine
+            Effect: "Allow"
+            Resource: !Ref TOTPSecretProduction
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !GetAtt OAuthTokenStateMachineRole.Arn
+          - Sid: ElevatedAdminAccess
+            Effect: Allow
+            Resource: !Ref TOTPSecretProduction
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+          - Sid: DenyAllOthers
+            Effect: "Deny"
+            Resource: !Ref TOTPSecretProduction
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+
   SecretsManagerHandlerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -864,6 +1080,7 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs
       RetentionInDays: 30
+      KmsKeyId: !If [IsProdEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -916,6 +1133,7 @@ Resources:
       PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
         SecretsManagerHandlerFunctionArn: !GetAtt SecretsManagerHandlerFunction.Arn
+        StackName: !Ref AWS::StackName
       Logging:
         Destinations:
           - CloudWatchLogsLogGroup:

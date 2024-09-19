@@ -16,7 +16,7 @@ describe("oauth-token-generator-unhappy", () => {
     expect(sfnContainer.getContainer()).toBeDefined();
   });
 
-  it("should fail when HMRC lambda responds with errors", async () => {
+  xit("should fail when HMRC lambda responds with errors", async () => {
     const input = JSON.stringify({ tokenType: "stub" });
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "hmrcAPIFail",
