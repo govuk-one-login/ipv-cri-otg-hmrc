@@ -820,6 +820,12 @@ Resources:
     Properties:
       Name: !Sub HMRC/BearerToken/${AWS::StackName}/sandbox
 
+  BearerTokenMonitoring:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/BearerToken/${AWS::StackName}/monitoring
+
   BearerTokenProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
     Condition: IsProdEnvironment
@@ -840,6 +846,12 @@ Resources:
     Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/ClientId/${AWS::StackName}/sandbox
+
+  ClientIdMonitoring:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientId/${AWS::StackName}/monitoring
 
   ClientIdProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
@@ -862,6 +874,12 @@ Resources:
     Properties:
       Name: !Sub HMRC/ClientSecret/${AWS::StackName}/sandbox
 
+  ClientSecretMonitoring:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/ClientSecret/${AWS::StackName}/monitoring
+
   ClientSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
     Condition: IsProdEnvironment
@@ -882,6 +900,12 @@ Resources:
     Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
+
+  TOTPSecretMonitoring:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsNotProdOrIntegrationEnvironment
+    Properties:
+      Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/monitoring
 
   TOTPSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
