@@ -979,6 +979,24 @@ Resources:
                   - !GetAtt OAuthTokenStateMachineRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
 
+  DenySecretsIAMPolicy:
+    #Condition: IsProdEnvironment #commented out for testing in dev
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Action:
+              - "states:GetExecutionHistory"
+            Resource:
+              - !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:${AWS::StackName}-OAuthTokenGenerator*
+          - Effect: Deny
+            Action:
+              - "logs:*"
+            Resource:
+              - !GetAtt OAuthTokenStateMachineLogGroup.Arn
+
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
