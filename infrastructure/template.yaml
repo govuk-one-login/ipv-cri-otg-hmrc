@@ -980,7 +980,7 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
 
   DenySecretsIAMPolicy:
-    #Condition: IsProdEnvironment #commented out for testing in dev
+    Condition: IsProdEnvironment
     Type: AWS::IAM::ManagedPolicy
     Properties:
       PolicyDocument:
