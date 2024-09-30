@@ -34,6 +34,24 @@ Parameters:
     Description: Link to the OTG support manual
     Type: String
     Default: "https://team-manual.account.gov.uk/teams/CRI-Orange-team/supporting-cri-orange/hmrc-otg-runbook/"
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments"
+    Type: String
+    Default: "AllAtOnce"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
+  StepFunctionsDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual StepFunction deployments"
+    Type: String
+    Default: "ALL_AT_ONCE"
+    AllowedValues:
+      - ALL_AT_ONCE
+      - CANARY
+      - LINEAR
 
 Conditions:
   EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
@@ -47,6 +65,9 @@ Conditions:
   IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
+  UseDeploymentAlarms: !Or
+    - !Not [ !Equals [ !Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE ]]
+    - !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
 
 Mappings:
   Dynatrace:
@@ -104,6 +125,7 @@ Globals:
       - !Sub
         - "{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}"
         - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
+    AutoPublishAlias: live
     Environment:
       Variables:
         NODE_OPTIONS: --enable-source-maps
@@ -1156,7 +1178,6 @@ Resources:
       DefinitionUri: ../step-functions/bearer-token-retrieval.asl.json
       PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
-        SecretsManagerHandlerFunctionArn: !GetAtt SecretsManagerHandlerFunction.Arn
         StackName: !Ref AWS::StackName
       Logging:
         Destinations:
@@ -1164,9 +1185,18 @@ Resources:
               LogGroupArn: !GetAtt BearerTokenRetrievalStateMachineLogGroup.Arn
         IncludeExecutionData: True
         Level: ALL
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: !Ref StepFunctionsDeploymentPreference
+        Interval: 10
+        Percentage: 10
+        Alarms: !If
+          - UseDeploymentAlarms
+          - - !Ref BearerTokenRetrievalStateMachineExecutionFailedCanaryAlarm
+            - !Ref BearerTokenRetrievalStateMachineTaskFailedCanaryAlarm
+          - !Ref AWS::NoValue
+        StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${BearerTokenRetrievalStateMachine}:live"
       Policies:
-        - LambdaInvokePolicy:
-            FunctionName: !Ref SecretsManagerHandlerFunction
         - Statement:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
@@ -1190,14 +1220,14 @@ Resources:
       LogGroupName: !Ref RedactedBearerTokenRetrievalStateMachineLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
-  BearerTokenRetrievalStateMachineFailedMetric:
+  BearerTokenRetrievalStateMachineTaskFailedMetric:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
-      FilterPattern: '{($.type = "ExecutionFailed")}'
+      FilterPattern: '{$.type = "TaskFailed"}'
       MetricTransformations:
         - MetricValue: "1"
-          MetricName: "BearerTokenRetrievalStateMachine-Error"
+          MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
 
   BearerTokenRetrievalStateMachineAlarm:
@@ -1223,6 +1253,47 @@ Resources:
       Dimensions:
         - Name: StateMachineArn
           Value: !Ref BearerTokenRetrievalStateMachine
+
+  BearerTokenRetrievalStateMachineExecutionFailedCanaryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      OKActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-ExecutionFailedCanaryAlarm
+      AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      MetricName: ExecutionsFailed
+      Namespace: AWS/States
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref BearerTokenRetrievalStateMachine
+
+  BearerTokenRetrievalStateMachineTaskFailedCanaryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      OKActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-TaskFailedCanaryAlarm
+      AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine"
+      MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
+      Namespace: !Sub ${AWS::StackName}/LogMessages
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   ExecuteStateMachineRole:
     Type: AWS::IAM::Role
@@ -1280,7 +1351,6 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1332,7 +1402,6 @@ Resources:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 80
@@ -1382,7 +1451,6 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1446,7 +1514,6 @@ Resources:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 80
@@ -1509,7 +1576,6 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1559,7 +1625,6 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 1
@@ -1622,7 +1687,6 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: []
-      Dimensions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
       Threshold: 2500
@@ -1678,6 +1742,14 @@ Resources:
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/LogRedactionFunction
       CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Alarms: !If
+          - UseDeploymentAlarms
+          - [!Ref LogRedactionFunctionCanaryErrorAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
+          - [!Ref AWS::NoValue]
+        Role: !GetAtt CodeDeployServiceRole.Arn
+
       Policies:
         - Statement:
             Effect: Allow
@@ -1720,7 +1792,6 @@ Resources:
       MetricName: LogRedactionFunction-Error
       Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
-      Dimensions: []
       Period: 120
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
@@ -1741,7 +1812,6 @@ Resources:
   LogRedactionFunctionFatalErrorAlarm:
     DependsOn: LogRedactionFunctionFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-FatalErrorAlarm
       AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
@@ -1786,6 +1856,33 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  LogRedactionFunctionCanaryErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      OKActions:
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+      AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryError
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-LogRedactionFunction:live"
+        - Name: FunctionName
+          Value: !Ref LogRedactionFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt LogRedactionFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   ###################################
   # Log Groups for Splunk (Redacted) #
@@ -1879,6 +1976,22 @@ Resources:
       DestinationArn: !GetAtt LogRedactionFunction.Arn
       FilterPattern: ""
       LogGroupName: !Ref PrivateOTGApiAccessLogGroup
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
 
 Outputs:
   PrivateApiGatewayId:

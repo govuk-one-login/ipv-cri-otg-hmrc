@@ -30,7 +30,7 @@ paths:
             Fn::Sub: |-
               {
                 "input": "{\"tokenType\": \"$util.escapeJavaScript($input.params('tokenType').trim())\"}",
-                "stateMachineArn": "${BearerTokenRetrievalStateMachine.Arn}"
+                "stateMachineArn": "${BearerTokenRetrievalStateMachine.Arn}:live"
               }
         responses:
           default:
