@@ -1259,18 +1259,18 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-ExecutionFailedCanaryAlarm
       AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine"
-      ComparisonOperator: GreaterThanThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       MetricName: ExecutionsFailed
       Namespace: AWS/States
       Period: 60
       Statistic: Sum
-      Threshold: 0
+      Threshold: 1
       TreatMissingData: notBreaching
       Dimensions:
         - Name: StateMachineArn
@@ -1281,9 +1281,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-TaskFailedCanaryAlarm
       AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine"
       MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
@@ -1862,9 +1862,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
       AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryError
       MetricName: Errors
