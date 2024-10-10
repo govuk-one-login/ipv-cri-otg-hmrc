@@ -1258,7 +1258,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: false
+      ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -1281,7 +1281,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: false
+      ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -1748,7 +1748,7 @@ Resources:
         Type: !Ref LambdaDeploymentPreference
         Alarms: !If
           - UseCanaryDeploymentAlarms
-          - [!Ref LogRedactionFunctionErrorCanaryAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
+          - [!Ref LogRedactionFunctionCanaryErrorAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
           - [!Ref AWS::NoValue]
         Role: !GetAtt CodeDeployServiceRole.Arn
 
@@ -1859,17 +1859,17 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  LogRedactionFunctionErrorCanaryAlarm:
+  LogRedactionFunctionCanaryErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: false
+      ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
-      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryError
+      AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryErrorAlarm
       MetricName: Errors
       Dimensions:
         - Name: Resource
