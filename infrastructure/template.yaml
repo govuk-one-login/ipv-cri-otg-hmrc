@@ -65,7 +65,7 @@ Conditions:
   IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
-  UseDeploymentAlarms: !Or
+  UseCanaryDeploymentAlarms: !Or
     - !Not [ !Equals [ !Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE ]]
     - !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
 
@@ -1191,7 +1191,7 @@ Resources:
         Interval: 10
         Percentage: 10
         Alarms: !If
-          - UseDeploymentAlarms
+          - UseCanaryDeploymentAlarms
           - - !Ref BearerTokenRetrievalStateMachineExecutionFailedCanaryAlarm
             - !Ref BearerTokenRetrievalStateMachineTaskFailedCanaryAlarm
           - !Ref AWS::NoValue
@@ -1256,12 +1256,13 @@ Resources:
 
   BearerTokenRetrievalStateMachineExecutionFailedCanaryAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-ExecutionFailedCanaryAlarm
       AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine"
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -1278,12 +1279,13 @@ Resources:
 
   BearerTokenRetrievalStateMachineTaskFailedCanaryAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-TaskFailedCanaryAlarm
       AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine"
       MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
@@ -1745,8 +1747,8 @@ Resources:
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Alarms: !If
-          - UseDeploymentAlarms
-          - [!Ref LogRedactionFunctionCanaryErrorAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
+          - UseCanaryDeploymentAlarms
+          - [!Ref LogRedactionFunctionErrorCanaryAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
           - [!Ref AWS::NoValue]
         Role: !GetAtt CodeDeployServiceRole.Arn
 
@@ -1857,14 +1859,15 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  LogRedactionFunctionCanaryErrorAlarm:
+  LogRedactionFunctionErrorCanaryAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
-        - !If [IsProdEnvironment, !ImportValue platform-alarm-warning-alert-topic, !Ref AWS::NoValue]
+        - !ImportValue platform-alarm-warning-alert-topic
       AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryError
       MetricName: Errors
