@@ -39,8 +39,15 @@ export class BearerTokenHandler implements LambdaInterface {
         };
       }
 
+      let responseBody;
+      try {
+        responseBody = JSON.stringify(await response.json());
+      } catch (ignored) {
+        /* empty */
+      }
+
       throw new Error(
-        `Error response received from HMRC ${response.status} ${response.statusText}`
+        `Error response received from HMRC ${response.status} ${response.statusText}: ${responseBody}`
       );
     } catch (error: unknown) {
       if (error instanceof Error) {
