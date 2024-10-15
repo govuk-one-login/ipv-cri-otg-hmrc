@@ -1,145 +1,142 @@
 {
-  "StateMachines": {
-    "oauth-token-generator": {
-      "TestCases": {
-        "Happy": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
-          "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
-          "Store Bearer Token": "StoreBearerTokenSuccess",
-          "Update Scheduler Time": "UpdateScheduleTimeSuccess",
-          "Get StackName":"GetStackName"
-        },
-        "HappyOnLastTry": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
-          "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
-          "Store Bearer Token": "StoreBearerTokenSuccess",
-          "Update Scheduler Time": "UpdateScheduleTimeSuccess",
-          "Get StackName":"GetStackName"
-        },
-        "hmrcAPIFail": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
-          "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail",
-          "Get StackName":"GetStackName"
-        }
-      }
-    }
-  },
-  "MockedResponses": {
-    "FetchClientIdSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
-    "GetStackName": {
-      "0": {
-        "Return": {
-          "value": "dummy-value"
-        }
-      }
-    },
-    "FetchTotpSecretSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
-    "FetchClientSecretSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
-    "GenerateTOTPSuccess": {
-      "0": {
-        "Return": {
-          "Payload": {
-            "totp": "0000000"
-          }
-        }
-      }
-    },
-    "GetOAuthUrlSuccess": {
-      "0": {
-        "Return": {
-          "Parameter": {
-            "Name": "hmrc_oauth_url",
-            "Type": "String",
-            "Value": "test-oauth-token-url"
-          }
-        }
-      }
-    },
-    "InvokeHMRCAPISuccess": {
-      "0": {
-        "Return": {
-          "StatusCode": 200,
-          "Payload": {
-            "token": "999999999999",
-            "tokenExpiry": 999999999999,
-            "tokenExpiryInMinutes": 240
-          }
-        }
-      }
-    },
-    "StoreBearerTokenSuccess": {
-      "0": {
-        "Return": {
-          "StatusCode": 200
-        }
-      }
-    },
-    "InvokeHMRCAPIFail": {
-      "0-3": {
-        "Throw": {
-          "Error": "InternalServerException",
-          "Cause": "Internal Server Exception"
-        }
-      }
-    },
-    "InvokeHMRCAPIFailFailSucceed": {
-      "0": {
-        "Throw": {
-          "Error": "Lambda.ResourceNotReadyException",
-          "Cause": "Lambda resource is not ready."
-        }
-      },
-      "1-2": {
-        "Throw": {
-          "Error": "Lambda.TimeoutException",
-          "Cause": "Lambda timed out."
-        }
-      },
-      "3": {
-        "Return": {
-          "StatusCode": 200,
-          "Payload": {
-            "token": "999999999999",
-            "tokenExpiry": 999999999999,
-            "tokenExpiryInMinutes": 240
-          }
-        }
-      }
-    },
-    "UpdateScheduleTimeSuccess": {
-      "0": {
-        "Return": {}
-      }
-    }
-  }
+	"StateMachines": {
+		"oauth-token-generator": {
+			"TestCases": {
+				"Happy": {
+					"Fetch TOTP Secret": "FetchTotpSecretSuccess",
+					"Generate TOTP Code": "GenerateTOTPSuccess",
+					"Fetch HMRC Client Id": "FetchClientIdSuccess",
+					"Fetch HMRC Client Secret": "FetchClientSecretSuccess",
+					"Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
+					"Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
+					"Store Bearer Token": "StoreBearerTokenSuccess",
+					"Update Scheduler Time": "UpdateScheduleTimeSuccess"
+				},
+				"HappyOnLastTry": {
+					"Fetch TOTP Secret": "FetchTotpSecretSuccess",
+					"Generate TOTP Code": "GenerateTOTPSuccess",
+					"Fetch HMRC Client Id": "FetchClientIdSuccess",
+					"Fetch HMRC Client Secret": "FetchClientSecretSuccess",
+					"Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
+					"Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
+					"Store Bearer Token": "StoreBearerTokenSuccess",
+					"Update Scheduler Time": "UpdateScheduleTimeSuccess"
+				},
+				"hmrcAPIFail": {
+					"Fetch TOTP Secret": "FetchTotpSecretSuccess",
+					"Generate TOTP Code": "GenerateTOTPSuccess",
+					"Fetch HMRC Client Id": "FetchClientIdSuccess",
+					"Fetch HMRC Client Secret": "FetchClientSecretSuccess",
+					"Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
+					"Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail"
+				}
+			}
+		}
+	},
+	"MockedResponses": {
+		"FetchClientIdSuccess": {
+			"0": {
+				"Return": {
+					"SecretString": "dummy-value"
+				}
+			}
+		},
+		"GetStackName": {
+			"0": {
+				"Return": {
+					"value": "dummy-value"
+				}
+			}
+		},
+		"FetchTotpSecretSuccess": {
+			"0": {
+				"Return": {
+					"SecretString": "dummy-value"
+				}
+			}
+		},
+		"FetchClientSecretSuccess": {
+			"0": {
+				"Return": {
+					"SecretString": "dummy-value"
+				}
+			}
+		},
+		"GenerateTOTPSuccess": {
+			"0": {
+				"Return": {
+					"Payload": {
+						"totp": "0000000"
+					}
+				}
+			}
+		},
+		"GetOAuthUrlSuccess": {
+			"0": {
+				"Return": {
+					"Parameter": {
+						"Name": "hmrc_oauth_url",
+						"Type": "String",
+						"Value": "test-oauth-token-url"
+					}
+				}
+			}
+		},
+		"InvokeHMRCAPISuccess": {
+			"0": {
+				"Return": {
+					"StatusCode": 200,
+					"Payload": {
+						"token": "999999999999",
+						"tokenExpiry": 999999999999,
+						"tokenExpiryInMinutes": 240
+					}
+				}
+			}
+		},
+		"StoreBearerTokenSuccess": {
+			"0": {
+				"Return": {
+					"StatusCode": 200
+				}
+			}
+		},
+		"InvokeHMRCAPIFail": {
+			"0-3": {
+				"Throw": {
+					"Error": "InternalServerException",
+					"Cause": "Internal Server Exception"
+				}
+			}
+		},
+		"InvokeHMRCAPIFailFailSucceed": {
+			"0": {
+				"Throw": {
+					"Error": "Lambda.ResourceNotReadyException",
+					"Cause": "Lambda resource is not ready."
+				}
+			},
+			"3": {
+				"Return": {
+					"StatusCode": 200,
+					"Payload": {
+						"token": "999999999999",
+						"tokenExpiry": 999999999999,
+						"tokenExpiryInMinutes": 240
+					}
+				}
+			},
+			"1-2": {
+				"Throw": {
+					"Error": "Lambda.TimeoutException",
+					"Cause": "Lambda timed out."
+				}
+			}
+		},
+		"UpdateScheduleTimeSuccess": {
+			"0": {
+				"Return": {}
+			}
+		}
+	}
 }

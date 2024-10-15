@@ -1,180 +1,178 @@
 {
-  "Comment": "HMRC OAuth Token Generator StateMachine",
-  "StartAt": "Refresh Token",
-  "States": {
-    "Refresh Token": {
-      "Type": "Parallel",
-      "Next": "Success",
-      "Branches": [
-        {
-          "StartAt": "Get StackName",
-          "States": {
-            "Get StackName": {
-              "Type": "Pass",
-              "Parameters": {
-                "value": "${StackName}"
-              },
-              "ResultPath": "$.StackName",
-              "Next": "Fetch TOTP Secret"
-            },
-            "Fetch TOTP Secret": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/TOTPSecret/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "ResultSelector": {
-                "SecretString.$": "$.SecretString"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.totpSecret",
-              "Next": "Generate TOTP Code"
-            },
-            "Generate TOTP Code": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "FunctionName": "${TotpGeneratorFunctionArn}",
-                "Payload": {
-                  "SecretString.$": "$.totpSecret.SecretString"
-                }
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "ResultSelector": {
-                "value.$": "$.Payload.totp"
-              },
-              "ResultPath": "$.totpCode",
-              "Next": "Fetch HMRC Client Id"
-            },
-            "Fetch HMRC Client Id": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientId/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.clientId",
-              "Next": "Fetch HMRC Client Secret"
-            },
-            "Fetch HMRC Client Secret": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientSecret/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.clientSecret",
-              "Next": "Fetch HMRC OAuth URL"
-            },
-            "Fetch HMRC OAuth URL": {
-              "Type": "Task",
-              "Parameters": {
-                "Name.$": "States.Format('/{}/HMRC/OAuthURL/{}', $.StackName.value, $.tokenType)"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
-              "ResultSelector": {
-                "value.$": "$.Parameter.Value"
-              },
-              "ResultPath": "$.oAuthURL",
-              "Next": "Invoke HMRC OAuth Token API"
-            },
-            "Invoke HMRC OAuth Token API": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "FunctionName": "${BearerTokenFunctionArn}",
-                "Payload": {
-                  "totp.$": "$.totpCode.value",
-                  "clientSecret": {
-                    "value.$": "$.clientSecret.SecretString"
-                  },
-                  "clientId": {
-                    "value.$": "$.clientId.SecretString"
-                  },
-                  "oAuthURL": {
-                    "value.$": "$.oAuthURL.value"
-                  }
-                }
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": ["States.ALL"],
-                  "BackoffRate": 2,
-                  "IntervalSeconds": 1,
-                  "MaxAttempts": 3
-                }
-              ],
-              "ResultSelector": {
-                "Payload.$": "$.Payload"
-              },
-              "ResultPath": "$.response",
-              "Next": "Store Bearer Token"
-            },
-            "Store Bearer Token": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/BearerToken/{}/{}', $.StackName.value, $.tokenType)",
-                "SecretString.$": "$.response.Payload"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
-              "ResultPath": "$.store",
-              "Next": "Update Scheduler Time"
-            },
-            "Update Scheduler Time": {
-              "Type": "Task",
-              "Parameters": {
-                "FlexibleTimeWindow": {
-                  "Mode": "OFF"
-                },
-                "Name.$": "States.Format('{}-{}', $.StackName.value, $.tokenType)",
-                "ScheduleExpression.$": "States.Format('rate({} minutes)', $.response.Payload.tokenExpiryInMinutes)",
-                "Target": {
-                  "Arn.$": "$$.StateMachine.Id",
-                  "Input.$": "$$.Execution.Input",
-                  "RetryPolicy": {
-                    "MaximumEventAgeInSeconds": 86400,
-                    "MaximumRetryAttempts": 185
-                  },
-                  "RoleArn": "${RefreshSchedulerRole}"
-                }
-              },
-              "Resource": "arn:aws:states:::aws-sdk:scheduler:updateSchedule",
-              "ResultSelector": {},
-              "End": true
-            }
-          }
-        }
-      ],
-      "Retry": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "BackoffRate": 2,
-          "MaxAttempts": 3,
-          "IntervalSeconds": 20
-        }
-      ],
-      "Catch": [
-        {
-          "ErrorEquals": ["States.ALL"],
-          "Next": "Fail",
-          "ResultPath": "$.fail"
-        }
-      ]
-    },
-    "Fail": {
-      "Type": "Fail"
-    },
-    "Success": {
-      "Type": "Succeed"
-    }
-  }
+	"Comment": "HMRC OAuth Token Generator StateMachine",
+	"StartAt": "Refresh Token",
+	"States": {
+		"Refresh Token": {
+			"Type": "Parallel",
+			"Next": "Success",
+			"Branches": [
+				{
+					"StartAt": "Fetch TOTP Secret",
+					"States": {
+						"Fetch TOTP Secret": {
+							"Type": "Task",
+							"Parameters": {
+								"SecretId.$": "States.Format('HMRC/TOTPSecret/{}/{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)"
+							},
+							"ResultSelector": {
+								"SecretString.$": "$.SecretString"
+							},
+							"Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+							"ResultPath": "$.totpSecret",
+							"Next": "Generate TOTP Code"
+						},
+						"Generate TOTP Code": {
+							"Type": "Task",
+							"Resource": "arn:aws:states:::lambda:invoke",
+							"Parameters": {
+								"FunctionName": "${TotpGeneratorFunctionArn}",
+								"Payload": {
+									"SecretString.$": "$.totpSecret.SecretString"
+								}
+							},
+							"Retry": [
+								{
+									"ErrorEquals": [
+										"Lambda.ServiceException",
+										"Lambda.AWSLambdaException",
+										"Lambda.SdkClientException",
+										"Lambda.TooManyRequestsException"
+									],
+									"IntervalSeconds": 2,
+									"MaxAttempts": 6,
+									"BackoffRate": 2
+								}
+							],
+							"ResultSelector": {
+								"value.$": "$.Payload.totp"
+							},
+							"ResultPath": "$.totpCode",
+							"Next": "Fetch HMRC Client Id"
+						},
+						"Fetch HMRC Client Id": {
+							"Type": "Task",
+							"Parameters": {
+								"SecretId.$": "States.Format('HMRC/ClientId/{}/{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)"
+							},
+							"Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+							"ResultPath": "$.clientId",
+							"Next": "Fetch HMRC Client Secret"
+						},
+						"Fetch HMRC Client Secret": {
+							"Type": "Task",
+							"Parameters": {
+								"SecretId.$": "States.Format('HMRC/ClientSecret/{}/{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)"
+							},
+							"Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
+							"ResultPath": "$.clientSecret",
+							"Next": "Fetch HMRC OAuth URL"
+						},
+						"Fetch HMRC OAuth URL": {
+							"Type": "Task",
+							"Parameters": {
+								"Name.$": "States.Format('/{}/HMRC/OAuthURL/{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)"
+							},
+							"Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+							"ResultSelector": {
+								"value.$": "$.Parameter.Value"
+							},
+							"ResultPath": "$.oAuthURL",
+							"Next": "Invoke HMRC OAuth Token API"
+						},
+						"Invoke HMRC OAuth Token API": {
+							"Type": "Task",
+							"Resource": "arn:aws:states:::lambda:invoke",
+							"Parameters": {
+								"FunctionName": "${BearerTokenFunctionArn}",
+								"Payload": {
+									"totp.$": "$.totpCode.value",
+									"clientSecret": {
+										"value.$": "$.clientSecret.SecretString"
+									},
+									"clientId": {
+										"value.$": "$.clientId.SecretString"
+									},
+									"oAuthURL": {
+										"value.$": "$.oAuthURL.value"
+									}
+								}
+							},
+							"Retry": [
+								{
+									"ErrorEquals": [
+										"States.ALL"
+									],
+									"BackoffRate": 2,
+									"IntervalSeconds": 1,
+									"MaxAttempts": 3
+								}
+							],
+							"ResultSelector": {
+								"Payload.$": "$.Payload"
+							},
+							"ResultPath": "$.response",
+							"Next": "Store Bearer Token"
+						},
+						"Store Bearer Token": {
+							"Type": "Task",
+							"Parameters": {
+								"SecretId.$": "States.Format('HMRC/BearerToken/{}/{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)",
+								"SecretString.$": "$.response.Payload"
+							},
+							"Resource": "arn:aws:states:::aws-sdk:secretsmanager:putSecretValue",
+							"ResultPath": "$.store",
+							"Next": "Update Scheduler Time"
+						},
+						"Update Scheduler Time": {
+							"Type": "Task",
+							"Parameters": {
+								"FlexibleTimeWindow": {
+									"Mode": "OFF"
+								},
+								"Name.$": "States.Format('{}-{}', States.ArrayGetItem(States.StringSplit(States.ArrayGetItem(States.StringSplit($$.Execution.RoleArn, '/'), 1), '-'), 0), $.tokenType)",
+								"ScheduleExpression.$": "States.Format('rate({} minutes)', $.response.Payload.tokenExpiryInMinutes)",
+								"Target": {
+									"Arn.$": "$$.StateMachine.Id",
+									"Input.$": "$$.Execution.Input",
+									"RetryPolicy": {
+										"MaximumEventAgeInSeconds": 86400,
+										"MaximumRetryAttempts": 185
+									},
+									"RoleArn": "${RefreshSchedulerRole}"
+								}
+							},
+							"Resource": "arn:aws:states:::aws-sdk:scheduler:updateSchedule",
+							"ResultSelector": {},
+							"End": true
+						}
+					}
+				}
+			],
+			"Retry": [
+				{
+					"ErrorEquals": [
+						"States.ALL"
+					],
+					"BackoffRate": 2,
+					"MaxAttempts": 3,
+					"IntervalSeconds": 20
+				}
+			],
+			"Catch": [
+				{
+					"ErrorEquals": [
+						"States.ALL"
+					],
+					"Next": "Fail",
+					"ResultPath": "$.fail"
+				}
+			]
+		},
+		"Fail": {
+			"Type": "Fail"
+		},
+		"Success": {
+			"Type": "Succeed"
+		}
+	}
 }
