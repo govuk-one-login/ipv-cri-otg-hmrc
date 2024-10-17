@@ -9,7 +9,19 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/integration-tests"
+      - "/lambdas/*"
     schedule:
       interval: "daily"
       time: "02:00"
+    groups:
+      aws:
+        patterns:
+          - "@aws-*"
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
