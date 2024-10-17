@@ -19,7 +19,6 @@ enum ExecutionStatus {
   success = "ExecutionSucceeded",
   fail = "ExecutionFailed",
 }
-
 export class SfnContainerHelper {
   private sfnClient: Promise<SFNClient>;
   private readonly composeEnvironment: Promise<StartedTestContainer>;
@@ -42,11 +41,10 @@ export class SfnContainerHelper {
 
   public async startStepFunctionExecution(
     testName: string,
-    stepFunctionInput: string
+    stepFunctionInput: string,
+    definition?: string
   ): Promise<StartExecutionCommandOutput> {
-    const stateMachineArn = `${
-      (await this.createStateMachine()).stateMachineArn as string
-    }#${testName}`;
+    const stateMachineArn = `${await this.getStateMachineArn(definition)}#${testName}`;
     return (await this.sfnClient).send(
       new StartExecutionCommand({
         stateMachineArn,
@@ -131,13 +129,15 @@ export class SfnContainerHelper {
     return container;
   }
 
-  private async createStateMachine(): Promise<CreateStateMachineCommandOutput> {
+  private async createStateMachine(
+    definition?: string
+  ): Promise<CreateStateMachineCommandOutput> {
     return await (
       await this.sfnClient
     ).send(
       new CreateStateMachineCommand({
         name: StepFunctionConstants.STATE_MACHINE_NAME,
-        definition: StepFunctionConstants.STATE_MACHINE_ASL,
+        definition: definition || StepFunctionConstants.STATE_MACHINE_ASL,
         roleArn:
           process.env.STATE_MACHINE_ROLE || StepFunctionConstants.DUMMY_ROLE,
         type: StateMachineType.STANDARD,
@@ -155,12 +155,14 @@ export class SfnContainerHelper {
         sfnClient,
         executionResponse.executionArn
       );
+
       if (
         this.executionState(historyResponse, ExecutionStatus.success) ||
         this.executionState(historyResponse, ExecutionStatus.fail)
       ) {
         return historyResponse;
       }
+
       if (retries > 0) {
         await this.sleep(1_000);
         return this.untilExecutionCompletes(
@@ -169,12 +171,14 @@ export class SfnContainerHelper {
           retries - 1
         );
       }
-      throw new Error(`Execution did not complete successfully`);
-    } catch (error) {
+      throw new Error(
+        `Execution did not complete successfully after ${MAX_RETRIES} attempts.`
+      );
+    } catch (error: unknown) {
       if (
+        retries > 0 &&
         error instanceof ExecutionDoesNotExist &&
-        error.name === "ExecutionDoesNotExist" &&
-        retries > 0
+        error.name === "ExecutionDoesNotExist"
       ) {
         await this.sleep(1_000);
         return this.untilExecutionCompletes(
@@ -182,14 +186,12 @@ export class SfnContainerHelper {
           executionResponse,
           retries - 1
         );
-      } else {
-        await this.sleep(1_000);
-        return this.untilExecutionCompletes(
-          sfnClient,
-          executionResponse,
-          retries - 1
-        );
       }
+      throw new Error(
+        `Error encountered during execution: ${
+          error instanceof Error ? error.message : String(error)
+        } after ${MAX_RETRIES - retries} retries.`
+      );
     }
   }
 
@@ -211,5 +213,9 @@ export class SfnContainerHelper {
     return (
       history?.events?.filter((event) => event.type === state).length === 1
     );
+  }
+
+  private async getStateMachineArn(definition?: string) {
+    return `${(await this.createStateMachine(definition)).stateMachineArn as string}`;
   }
 }
