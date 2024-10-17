@@ -1,7 +1,9 @@
 import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
+import { StateMachineDefinition } from "./oauth-token-asl-types";
+import { StepFunctionConstants } from "./sfn-constants";
 
-jest.setTimeout(200_000);
+jest.setTimeout(60_000);
 
 describe("oauth-token-generator-unhappy", () => {
   let sfnContainer: SfnContainerHelper;
@@ -16,11 +18,14 @@ describe("oauth-token-generator-unhappy", () => {
     expect(sfnContainer.getContainer()).toBeDefined();
   });
 
-  xit("should fail when HMRC lambda responds with errors", async () => {
+  it("should fail when HMRC lambda responds with errors", async () => {
     const input = JSON.stringify({ tokenType: "stub" });
+
+    const newStateMachineDefinition = setRefreshTokenRetryMaxAttemptsToZero();
     const responseStepFunction = await sfnContainer.startStepFunctionExecution(
       "hmrcAPIFail",
-      input
+      input,
+      newStateMachineDefinition
     );
 
     const failedStateEvent = (e: HistoryEvent) =>
@@ -57,3 +62,11 @@ describe("oauth-token-generator-unhappy", () => {
     );
   });
 });
+
+const setRefreshTokenRetryMaxAttemptsToZero = () => {
+  const oauthTokenAsl = StepFunctionConstants.STATE_MACHINE_ASL;
+  const sfnDefinition = JSON.parse(oauthTokenAsl) as StateMachineDefinition;
+
+  sfnDefinition.States["Refresh Token"].Retry[0].MaxAttempts = 0;
+  return JSON.stringify(sfnDefinition);
+};
