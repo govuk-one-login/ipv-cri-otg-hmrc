@@ -48,9 +48,12 @@ describe("bearer-token-handler", () => {
   });
 
   it("should throw when an invalid response is returned from HMRC", async () => {
+    const error = {
+      error: "dummy-error",
+    };
     global.fetch = jest.fn();
     (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValueOnce({}),
+      json: jest.fn().mockResolvedValueOnce(error),
       ok: false,
       status: 400,
       statusText: "Forbidden",
@@ -70,7 +73,10 @@ describe("bearer-token-handler", () => {
     };
 
     await expect(() => bearerTokenHandler.handler(event, {})).rejects.toThrow(
-      new Error("Error response received from HMRC 400 Forbidden")
+      new Error(
+        "Error response received from HMRC 400 Forbidden: " +
+          JSON.stringify(error)
+      )
     );
   });
 });
