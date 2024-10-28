@@ -3,10 +3,6 @@
     "oauth-token-generator": {
       "TestCases": {
         "Happy": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
           "Store Bearer Token": "StoreBearerTokenSuccess",
@@ -14,10 +10,6 @@
           "Get StackName":"GetStackName"
         },
         "HappyOnLastTry": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
           "Store Bearer Token": "StoreBearerTokenSuccess",
@@ -25,10 +17,6 @@
           "Get StackName":"GetStackName"
         },
         "hmrcAPIFail": {
-          "Fetch HMRC Client Id": "FetchClientIdSuccess",
-          "Fetch TOTP Secret": "FetchTotpSecretSuccess",
-          "Fetch HMRC Client Secret": "FetchClientSecretSuccess",
-          "Generate TOTP Code": "GenerateTOTPSuccess",
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
           "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail",
           "Get StackName":"GetStackName"
@@ -37,40 +25,10 @@
     }
   },
   "MockedResponses": {
-    "FetchClientIdSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
     "GetStackName": {
       "0": {
         "Return": {
           "value": "dummy-value"
-        }
-      }
-    },
-    "FetchTotpSecretSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
-    "FetchClientSecretSuccess": {
-      "0": {
-        "Return": {
-          "SecretString": "dummy-value"
-        }
-      }
-    },
-    "GenerateTOTPSuccess": {
-      "0": {
-        "Return": {
-          "Payload": {
-            "totp": "0000000"
-          }
         }
       }
     },

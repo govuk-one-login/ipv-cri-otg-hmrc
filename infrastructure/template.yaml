@@ -508,6 +508,13 @@ Resources:
       LoggingConfig:
         LogGroup: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
       CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/TOTPSecret/*
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientSecret/*
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientId/*
 
   BearerTokenHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -617,128 +624,6 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  TotpGeneratorFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Sourcemap: true
-    Properties:
-      Handler: lambdas/totp-generator/src/totp-generator-handler.lambdaHandler
-      LoggingConfig:
-        LogGroup: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
-      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
-
-  TotpGeneratorFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction
-      RetentionInDays: 30
-
-  TotpGeneratorFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevLikeEnvironment
-    Properties:
-      FilterPattern: ""
-      LogGroupName: !Ref RedactedTotpGeneratorFunctionLogGroup
-      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
-
-  # TotpGeneratorFunction Alarms
-  TotpGeneratorFunctionErrorMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
-      FilterPattern: '{ $.level = "ERROR" }'
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
-          MetricName: TotpGeneratorFunction-Error
-
-  TotpGeneratorFunctionErrorAlarm:
-    DependsOn: TotpGeneratorFunctionErrorMetricFilter
-    Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
-    Properties:
-      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-ErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Error occurs. ${SupportManualURL}
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: []
-      MetricName: TotpGeneratorFunction-Error
-      Namespace: !Sub ${AWS::StackName}/LogMessages
-      Statistic: Sum
-      Dimensions: []
-      Period: 120
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 3
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-
-  TotpGeneratorFunctionFatalErrorMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
-      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub ${AWS::StackName}/LogMessages
-          MetricName: TotpGeneratorFunction-FatalError
-
-  TotpGeneratorFunctionFatalErrorAlarm:
-    DependsOn: TotpGeneratorFunctionFatalErrorMetricFilter
-    Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
-    Properties:
-      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-FatalErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: []
-      MetricName: TotpGeneratorFunction-FatalError
-      Namespace: !Sub ${AWS::StackName}/LogMessages
-      Statistic: Sum
-      Dimensions: []
-      Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-
-  TotpGeneratorFunctionThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
-      OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
-      InsufficientDataActions: []
-      AlarmDescription: !Sub Trigger if the ${TotpGeneratorFunction} lambda throttles. ${SupportManualURL}
-      AlarmName: !Sub ${AWS::StackName}-${Environment}-TotpGeneratorFunction-throttles
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref TotpGeneratorFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-
   SecretsManagerHandlerEncryptionKey:
     Condition: IsProdEnvironment
     Type: AWS::KMS::Key
@@ -761,7 +646,10 @@ Resources:
             Effect: Allow
             Resource: "*"
             Principal:
-              AWS: [!GetAtt OAuthTokenStateMachineRole.Arn, !GetAtt LogRedactionFunctionRole.Arn]
+              AWS: [
+                !GetAtt LogRedactionFunctionRole.Arn,
+                !GetAtt BearerTokenHandlerFunction.Arn
+              ]
             Action:
             - "kms:Encrypt*"
             - "kms:Decrypt*"
@@ -782,8 +670,8 @@ Resources:
             Condition:
               ArnEquals:
                 "kms:EncryptionContext:aws:logs:arn":
-                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
                 - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction"
           - Sid: ElevatedAdminAccess
             Effect: Allow
             Resource: "*"
@@ -800,13 +688,13 @@ Resources:
               StringNotLike:
                 "aws:PrincipalArn":
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
-                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !GetAtt BearerTokenHandlerFunction.Arn
                   - !GetAtt LogRedactionFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
               ArnNotLike:
                 "kms:EncryptionContext:aws:logs:arn":
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs"
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction"
       Tags:
         - Key: Name
           Value: !Join
@@ -1004,7 +892,6 @@ Resources:
       DefinitionUri: ../step-functions/oauth-token-generator.asl.json
       PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       DefinitionSubstitutions:
-        TotpGeneratorFunctionArn: !GetAtt TotpGeneratorFunction.Arn
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
         StackName: !Ref AWS::StackName
         RefreshSchedulerRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-RefreshSchedulerRole
@@ -1016,15 +903,7 @@ Resources:
         Level: ALL
       Policies:
         - LambdaInvokePolicy:
-            FunctionName: !Ref TotpGeneratorFunction
-        - LambdaInvokePolicy:
             FunctionName: !Ref BearerTokenHandlerFunction
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/TOTPSecret/*
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientSecret/*
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/ClientId/*
         - Statement:
             - Effect: Allow
               Action: ssm:GetParameter
@@ -1829,21 +1708,6 @@ Resources:
       DestinationArn: !GetAtt LogRedactionFunction.Arn
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
-
-  RedactedTotpGeneratorFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TotpGeneratorFunction-redacted
-      RetentionInDays: 30
-
-  TotpGeneratorFunctionLogsSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    DependsOn: LogRedactionFunctionCloudWatchPermissions
-    Properties:
-      FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
-      FilterPattern: ""
-      LogGroupName: !Ref TotpGeneratorFunctionLogGroup
 
   RedactedOAuthTokenStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
