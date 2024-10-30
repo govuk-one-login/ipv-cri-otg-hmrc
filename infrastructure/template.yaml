@@ -648,7 +648,7 @@ Resources:
             Principal:
               AWS: [
                 !GetAtt LogRedactionFunctionRole.Arn,
-                !GetAtt BearerTokenHandlerFunction.Arn
+                !GetAtt BearerTokenHandlerFunctionRole.Arn
               ]
             Action:
             - "kms:Encrypt*"
