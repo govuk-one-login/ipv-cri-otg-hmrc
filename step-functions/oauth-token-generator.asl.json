@@ -27,9 +27,9 @@
                 "value.$": "$.Parameter.Value"
               },
               "ResultPath": "$.oAuthURL",
-              "Next": "Invoke HMRC OAuth Token API"
+              "Next": "Fetch HMRC OAuth Token"
             },
-            "Invoke HMRC OAuth Token API": {
+            "Fetch HMRC OAuth Token": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "Parameters": {

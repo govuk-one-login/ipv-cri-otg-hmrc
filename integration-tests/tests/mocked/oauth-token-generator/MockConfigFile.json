@@ -4,21 +4,21 @@
       "TestCases": {
         "Happy": {
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPISuccess",
+          "Fetch HMRC OAuth Token": "InvokeHMRCAPISuccess",
           "Store Bearer Token": "StoreBearerTokenSuccess",
           "Update Scheduler Time": "UpdateScheduleTimeSuccess",
           "Get StackName":"GetStackName"
         },
         "HappyOnLastTry": {
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFailFailSucceed",
+          "Fetch HMRC OAuth Token": "InvokeHMRCAPIFailFailSucceed",
           "Store Bearer Token": "StoreBearerTokenSuccess",
           "Update Scheduler Time": "UpdateScheduleTimeSuccess",
           "Get StackName":"GetStackName"
         },
         "hmrcAPIFail": {
           "Fetch HMRC OAuth URL": "GetOAuthUrlSuccess",
-          "Invoke HMRC OAuth Token API": "InvokeHMRCAPIFail",
+          "Fetch HMRC OAuth Token": "InvokeHMRCAPIFail",
           "Get StackName":"GetStackName"
         }
       }
