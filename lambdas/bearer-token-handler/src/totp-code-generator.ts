@@ -14,21 +14,20 @@ export async function generateTotpCode(
     if (!SecretString) {
       throw new Error("No secret string present.");
     }
-    const totp_config = generateConfig({
+    const totpConfig = generateConfig({
       digits: TOTP_LENGTH,
       period: TOTP_TTL_IN_SECONDS,
       algo: TOTP_HASH,
     });
-    const totp_code = Totp.generatePasscodes(
+    const totpCode = Totp.generatePasscodes(
       { secret: SecretString },
-      totp_config
+      totpConfig
     )[0];
     return {
-      totp: totp_code,
+      totp: totpCode,
     };
   } catch (error: unknown) {
-    let message = "Unknown Error";
-    if (error instanceof Error) message = error.message;
+    const message = error instanceof Error ? error.message : "Unknown Error";
     logger.error("Error TOTP Generator: " + message);
     throw error;
   }
