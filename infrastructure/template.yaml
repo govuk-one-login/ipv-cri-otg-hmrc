@@ -842,12 +842,6 @@ Resources:
             Action: "secretsmanager:*"
             Principal:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
-          - Sid: AllowStateMachine
-            Effect: "Allow"
-            Resource: !Ref TOTPSecretProduction
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !GetAtt OAuthTokenStateMachineRole.Arn
           - Sid: AllowBearerTokenHandlerFunction
             Effect: "Allow"
             Resource: !Ref TOTPSecretProduction
