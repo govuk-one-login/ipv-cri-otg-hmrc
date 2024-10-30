@@ -848,6 +848,12 @@ Resources:
             Action: "secretsmanager:*"
             Principal:
               AWS: !GetAtt OAuthTokenStateMachineRole.Arn
+          - Sid: AllowBearerTokenHandlerFunction
+            Effect: "Allow"
+            Resource: !Ref TOTPSecretProduction
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !GetAtt BearerTokenHandlerFunctionRole.Arn
           - Sid: ElevatedAdminAccess
             Effect: Allow
             Resource: !Ref TOTPSecretProduction
