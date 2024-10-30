@@ -74,4 +74,21 @@ describe("bearer-token-handler", () => {
       new Error("Error response received from HMRC 400 Forbidden")
     );
   });
+
+  it("should throw when an secret is not found in SecretsManager", async () => {
+    mockSecretsManagerClient.prototype.send = jest.fn();
+    const bearerTokenHandler = new BearerTokenHandler(
+      mockSecretsManagerClient.prototype
+    );
+    const event = {
+      stackName: "dummy",
+      tokenType: "stub",
+      oAuthURL: {
+        value: "someUrl",
+      },
+    };
+    await expect(() => bearerTokenHandler.handler(event, {})).rejects.toThrow(
+      new Error("No secret found for HMRC/TOTPSecret/dummy/stub")
+    );
+  });
 });

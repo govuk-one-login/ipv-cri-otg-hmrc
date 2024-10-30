@@ -10,10 +10,6 @@ import {
 
 const logger = new Logger();
 
-const clientSecretName = "HMRC/ClientSecret/%s/%s";
-const clientIdName = "HMRC/ClientId/%s/%s";
-const totpSecretName = "HMRC/TOTPSecret/%s/%s";
-
 export class BearerTokenHandler implements LambdaInterface {
   secretsManager: SecretsManagerClient;
 
@@ -50,13 +46,13 @@ export class BearerTokenHandler implements LambdaInterface {
     tokenType: string
   ): Promise<[string, string, string]> {
     const totpSecret = await this.getSecret(
-      format(totpSecretName, stackName, tokenType)
+      this.format("HMRC/TOTPSecret", stackName, tokenType)
     );
     const clientId = await this.getSecret(
-      format(clientIdName, stackName, tokenType)
+      this.format("HMRC/ClientId", stackName, tokenType)
     );
     const clientSecret = await this.getSecret(
-      format(clientSecretName, stackName, tokenType)
+      this.format("HMRC/ClientSecret", stackName, tokenType)
     );
     return [totpSecret, clientId, clientSecret];
   }
@@ -100,7 +96,7 @@ export class BearerTokenHandler implements LambdaInterface {
           SecretId: secretName,
         })
       );
-      if (!data.SecretString) {
+      if (!data?.SecretString) {
         throw new Error("No secret found for " + secretName);
       }
       return data.SecretString;
@@ -113,10 +109,10 @@ export class BearerTokenHandler implements LambdaInterface {
       throw error;
     }
   }
-}
 
-function format(str: string, ...args: string[]): string {
-  return str.replace(/%s/g, () => args.shift() ?? "");
+  private format(prefix: string, stackName: string, tokenType: string): string {
+    return `${prefix}/${stackName}/${tokenType}`;
+  }
 }
 
 const secretsManager = new SecretsManagerClient();
