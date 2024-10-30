@@ -1,12 +1,7 @@
 export interface OAuthEvent {
+  stackName: string;
+  tokenType: string;
   oAuthURL: {
-    value: string;
-  };
-  totp: string;
-  clientSecret: {
-    value: string;
-  };
-  clientId: {
     value: string;
   };
 }

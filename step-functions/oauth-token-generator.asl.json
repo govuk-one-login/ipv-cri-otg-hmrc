@@ -15,64 +15,6 @@
                 "value": "${StackName}"
               },
               "ResultPath": "$.StackName",
-              "Next": "Fetch TOTP Secret"
-            },
-            "Fetch TOTP Secret": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/TOTPSecret/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "ResultSelector": {
-                "SecretString.$": "$.SecretString"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.totpSecret",
-              "Next": "Generate TOTP Code"
-            },
-            "Generate TOTP Code": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "FunctionName": "${TotpGeneratorFunctionArn}",
-                "Payload": {
-                  "SecretString.$": "$.totpSecret.SecretString"
-                }
-              },
-              "Retry": [
-                {
-                  "ErrorEquals": [
-                    "Lambda.ServiceException",
-                    "Lambda.AWSLambdaException",
-                    "Lambda.SdkClientException",
-                    "Lambda.TooManyRequestsException"
-                  ],
-                  "IntervalSeconds": 2,
-                  "MaxAttempts": 6,
-                  "BackoffRate": 2
-                }
-              ],
-              "ResultSelector": {
-                "value.$": "$.Payload.totp"
-              },
-              "ResultPath": "$.totpCode",
-              "Next": "Fetch HMRC Client Id"
-            },
-            "Fetch HMRC Client Id": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientId/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.clientId",
-              "Next": "Fetch HMRC Client Secret"
-            },
-            "Fetch HMRC Client Secret": {
-              "Type": "Task",
-              "Parameters": {
-                "SecretId.$": "States.Format('HMRC/ClientSecret/{}/{}', $.StackName.value, $.tokenType)"
-              },
-              "Resource": "arn:aws:states:::aws-sdk:secretsmanager:getSecretValue",
-              "ResultPath": "$.clientSecret",
               "Next": "Fetch HMRC OAuth URL"
             },
             "Fetch HMRC OAuth URL": {
@@ -85,21 +27,16 @@
                 "value.$": "$.Parameter.Value"
               },
               "ResultPath": "$.oAuthURL",
-              "Next": "Invoke HMRC OAuth Token API"
+              "Next": "Fetch HMRC OAuth Token"
             },
-            "Invoke HMRC OAuth Token API": {
+            "Fetch HMRC OAuth Token": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "Parameters": {
                 "FunctionName": "${BearerTokenFunctionArn}",
                 "Payload": {
-                  "totp.$": "$.totpCode.value",
-                  "clientSecret": {
-                    "value.$": "$.clientSecret.SecretString"
-                  },
-                  "clientId": {
-                    "value.$": "$.clientId.SecretString"
-                  },
+                  "stackName.$": "$.StackName.value",
+                  "tokenType.$": "$.tokenType",
                   "oAuthURL": {
                     "value.$": "$.oAuthURL.value"
                   }

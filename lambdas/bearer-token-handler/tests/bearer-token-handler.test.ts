@@ -1,10 +1,17 @@
 import { BearerTokenHandler } from "../src/bearer-token-handler";
 import { Context } from "aws-lambda";
+import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 describe("bearer-token-handler", () => {
+  const mockSecretsManagerClient = jest.mocked(SecretsManagerClient);
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+
+    mockSecretsManagerClient.prototype.send = jest.fn().mockReturnValue({
+      SecretString: "ABCDEFGHIJKLMNOP",
+    });
   });
 
   it("should return a bearer token with the expected expiry date", async () => {
@@ -20,15 +27,13 @@ describe("bearer-token-handler", () => {
       }),
       ok: true,
     });
-    const bearerTokenHandler = new BearerTokenHandler();
+
+    const bearerTokenHandler = new BearerTokenHandler(
+      mockSecretsManagerClient.prototype
+    );
     const event = {
-      totp: "someTotpCode",
-      clientSecret: {
-        value: "someSecret",
-      },
-      clientId: {
-        value: "someClientId",
-      },
+      stackName: "dummy",
+      tokenType: "stub",
       oAuthURL: {
         value: "someUrl",
       },
@@ -55,22 +60,35 @@ describe("bearer-token-handler", () => {
       status: 400,
       statusText: "Forbidden",
     });
-    const bearerTokenHandler = new BearerTokenHandler();
+    const bearerTokenHandler = new BearerTokenHandler(
+      mockSecretsManagerClient.prototype
+    );
     const event = {
-      totp: "someTotpCode",
-      clientSecret: {
-        value: "someSecret",
-      },
-      clientId: {
-        value: "someClientId",
-      },
+      stackName: "dummy",
+      tokenType: "stub",
       oAuthURL: {
         value: "someUrl",
       },
     };
-
     await expect(() => bearerTokenHandler.handler(event, {})).rejects.toThrow(
       new Error("Error response received from HMRC 400 Forbidden")
+    );
+  });
+
+  it("should throw when an secret is not found in SecretsManager", async () => {
+    mockSecretsManagerClient.prototype.send = jest.fn();
+    const bearerTokenHandler = new BearerTokenHandler(
+      mockSecretsManagerClient.prototype
+    );
+    const event = {
+      stackName: "dummy",
+      tokenType: "stub",
+      oAuthURL: {
+        value: "someUrl",
+      },
+    };
+    await expect(() => bearerTokenHandler.handler(event, {})).rejects.toThrow(
+      new Error("No secret found for HMRC/TOTPSecret/dummy/stub")
     );
   });
 });
