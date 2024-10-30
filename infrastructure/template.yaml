@@ -66,8 +66,8 @@ Conditions:
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
   UseCanaryDeploymentAlarms: !Or
-    - !Not [ !Equals [ !Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE ]]
-    - !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+    - !Not [!Equals [!Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE]]
+    - !Not [!Equals [!Ref LambdaDeploymentPreference, AllAtOnce]]
 
 Mappings:
   Dynatrace:
@@ -506,7 +506,7 @@ Resources:
     Properties:
       Handler: lambdas/bearer-token-handler/src/bearer-token-handler.lambdaHandler
       LoggingConfig:
-        LogGroup: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction
+        LogGroup: !Ref BearerTokenHandlerFunctionLogGroup
       CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Policies:
         - AWSSecretsManagerGetSecretValuePolicy:
@@ -1534,7 +1534,7 @@ Resources:
     Properties:
       FunctionName: !GetAtt LogRedactionFunction.Arn
       Action: lambda:InvokeFunction
-      Principal: !Join [ ".", [ "logs", !Ref "AWS::Region", "amazonaws.com" ] ]
+      Principal: !Join [".", ["logs", !Ref "AWS::Region", "amazonaws.com"]]
       SourceAccount: !Ref AWS::AccountId
 
   LogRedactionFunction:
@@ -1546,7 +1546,7 @@ Resources:
     Properties:
       Handler: lambdas/log-redaction/src/redact-handler.lambdaHandler
       LoggingConfig:
-        LogGroup: !Sub /aws/lambda/${AWS::StackName}/LogRedactionFunction
+        LogGroup: !Ref LogRedactionFunctionLogGroup
       CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -1768,7 +1768,7 @@ Resources:
                 - codedeploy.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
 Outputs:
   PrivateApiGatewayId:
