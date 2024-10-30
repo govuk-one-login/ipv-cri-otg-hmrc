@@ -651,27 +651,27 @@ Resources:
                 !GetAtt BearerTokenHandlerFunctionRole.Arn
               ]
             Action:
-            - "kms:Encrypt*"
-            - "kms:Decrypt*"
-            - "kms:ReEncrypt*"
-            - "kms:GenerateDataKey*"
-            - "kms:Describe*"
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
           - Sid: AccessForLogs
             Effect: Allow
             Resource: "*"
             Principal:
               Service: logs.eu-west-2.amazonaws.com
             Action:
-            - "kms:Encrypt*"
-            - "kms:Decrypt*"
-            - "kms:ReEncrypt*"
-            - "kms:GenerateDataKey*"
-            - "kms:Describe*"
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
             Condition:
               ArnEquals:
                 "kms:EncryptionContext:aws:logs:arn":
-                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
-                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction"
           - Sid: ElevatedAdminAccess
             Effect: Allow
             Resource: "*"
@@ -842,12 +842,12 @@ Resources:
             Action: "secretsmanager:*"
             Principal:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
-          - Sid: AllowStateMachine
+          - Sid: AllowBearerTokenHandlerFunction
             Effect: "Allow"
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
             Principal:
-              AWS: !GetAtt OAuthTokenStateMachineRole.Arn
+              AWS: !GetAtt BearerTokenHandlerFunctionRole.Arn
           - Sid: ElevatedAdminAccess
             Effect: Allow
             Resource: !Ref TOTPSecretProduction
@@ -864,7 +864,7 @@ Resources:
               StringNotLike:
                 "aws:PrincipalArn":
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
-                  - !GetAtt OAuthTokenStateMachineRole.Arn
+                  - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
 
   DenySecretsIAMPolicy:
