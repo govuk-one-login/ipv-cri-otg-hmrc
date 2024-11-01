@@ -460,7 +460,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref RedactedPrivateOTGApiAccessLogGroup
+      LogGroupName: !Ref PrivateOTGApiAccessLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   PrivateOTGApiFatalErrorMetricFilter:
@@ -527,7 +527,7 @@ Resources:
     Condition: IsNotDevLikeEnvironment
     Properties:
       FilterPattern: ""
-      LogGroupName: !Ref RedactedBearerTokenHandlerFunctionLogGroup
+      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
       DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # BearerTokenHandlerFunction Alarms
@@ -1676,20 +1676,6 @@ Resources:
   ###################################
   # Log Groups for Splunk (Redacted) #
   ###################################
-  RedactedBearerTokenHandlerFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/BearerTokenHandlerFunction-redacted
-      RetentionInDays: 30
-
-  BearerTokenHandlerFunctionLogsSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    DependsOn: LogRedactionFunctionCloudWatchPermissions
-    Properties:
-      FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
-      FilterPattern: ""
-      LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
 
   RedactedOAuthTokenStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1720,21 +1706,6 @@ Resources:
       DestinationArn: !GetAtt LogRedactionFunction.Arn
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
-
-  RedactedPrivateOTGApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/vendedlogs/apigateway/${AWS::StackName}-${PrivateOTGApi}-private-AccessLogs-redacted
-      RetentionInDays: 30
-
-  PrivateOTGApiAccessLogGroupSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    DependsOn: LogRedactionFunctionCloudWatchPermissions
-    Properties:
-      FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
-      FilterPattern: ""
-      LogGroupName: !Ref PrivateOTGApiAccessLogGroup
 
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
