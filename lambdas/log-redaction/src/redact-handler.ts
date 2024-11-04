@@ -18,7 +18,7 @@ import {
 const logger = new Logger();
 const cloudwatch = new CloudWatchLogsClient();
 
-const logStreamTrackingTable = process.env.LogStreamTrackingTbl;
+const logStreamTrackingTable = process.env.RedactionLogStreamTrackingTable;
 
 export class RedactHandler implements LambdaInterface {
   private readonly dynamodb: DynamoDBClient;
