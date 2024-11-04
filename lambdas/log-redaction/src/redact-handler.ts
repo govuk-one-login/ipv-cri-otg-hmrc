@@ -85,9 +85,7 @@ export class RedactHandler implements LambdaInterface {
   }
 
   private async createLogStream(logStreamName: string, logGroupName: string) {
-    const query = await this.queryTable(logStreamName);
-
-    if (query.Count == 0) {
+    if (!(await this.logStreamExists(logStreamName))) {
       logger.info("Creating log stream " + logStreamName);
 
       await cloudwatch.send(
@@ -118,8 +116,8 @@ export class RedactHandler implements LambdaInterface {
     logger.info("Added " + logStream + " to " + logStreamTrackingTable);
   }
 
-  private async queryTable(logStream: string) {
-    return await this.dynamodb.send(
+  private async logStreamExists(logStream: string) {
+    const query = await this.dynamodb.send(
       new QueryCommand({
         TableName: logStreamTrackingTable,
         KeyConditionExpression: "logStreamName = :logStream",
@@ -130,6 +128,7 @@ export class RedactHandler implements LambdaInterface {
         },
       })
     );
+    return query.Count !== 0;
   }
 
   private formatMessage(message: string) {
