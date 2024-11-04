@@ -96,11 +96,12 @@ export class RedactHandler implements LambdaInterface {
       );
 
       await this.saveLogStreamRecordInDB(logStreamName);
+      logger.info("Added " + logStreamName + " to " + logStreamTrackingTable);
     }
   }
 
-  private async saveLogStreamRecordInDB(logStream: string) {
-    await this.dynamodb.send(
+  private saveLogStreamRecordInDB(logStream: string) {
+    return this.dynamodb.send(
       new PutItemCommand({
         TableName: logStreamTrackingTable,
         Item: {
@@ -113,7 +114,6 @@ export class RedactHandler implements LambdaInterface {
         },
       })
     );
-    logger.info("Added " + logStream + " to " + logStreamTrackingTable);
   }
 
   private async logStreamExists(logStream: string) {
