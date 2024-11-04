@@ -148,6 +148,21 @@ Globals:
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
 
 Resources:
+  LogStreamTrackingTbl:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-logstream-tracking-tbl
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: logStreamName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: logStreamName
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expiryDate
+        Enabled: true
+
   StubTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
     Condition: IsNotProdOrIntegrationEnvironment
@@ -1537,8 +1552,12 @@ Resources:
           - [!Ref LogRedactionFunctionCanaryErrorAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
           - [!Ref AWS::NoValue]
         Role: !GetAtt CodeDeployServiceRole.Arn
-
+      Environment:
+        Variables:
+          LogStreamTrackingTbl: !Ref LogStreamTrackingTbl
       Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LogStreamTrackingTbl
         - Statement:
             Effect: Allow
             Action: logs:*
