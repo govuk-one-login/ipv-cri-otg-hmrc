@@ -97,11 +97,11 @@ export class RedactHandler implements LambdaInterface {
         })
       );
 
-      await this.createLogStreamRecordInDB(logStreamName);
+      await this.saveLogStreamRecordInDB(logStreamName);
     }
   }
 
-  private async createLogStreamRecordInDB(logStream: string) {
+  private async saveLogStreamRecordInDB(logStream: string) {
     await this.dynamodb.send(
       new PutItemCommand({
         TableName: logStreamTrackingTable,
