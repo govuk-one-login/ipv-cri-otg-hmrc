@@ -151,7 +151,7 @@ Resources:
   RedactionLogStreamTrackingTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub ${AWS::StackName}-logstream-tracking-tbl
+      TableName: !Sub ${AWS::StackName}-redact-logstream-tracking
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: logStreamName
