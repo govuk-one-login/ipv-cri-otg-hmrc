@@ -18,7 +18,7 @@ import {
 const logger = new Logger();
 const cloudwatch = new CloudWatchLogsClient();
 
-const logStreamTrackingTable = process.env.LogStreamTrackingTbl;
+const logStreamTrackingTable = process.env.RedactionLogStreamTrackingTable;
 
 export class RedactHandler implements LambdaInterface {
   private readonly dynamodb: DynamoDBClient;
@@ -85,9 +85,7 @@ export class RedactHandler implements LambdaInterface {
   }
 
   private async createLogStream(logStreamName: string, logGroupName: string) {
-    const query = await this.queryTable(logStreamName);
-
-    if (query.Count == 0) {
+    if (!(await this.logStreamExists(logStreamName))) {
       logger.info("Creating log stream " + logStreamName);
 
       await cloudwatch.send(
@@ -97,12 +95,13 @@ export class RedactHandler implements LambdaInterface {
         })
       );
 
-      await this.createLogStreamRecordInDB(logStreamName);
+      await this.saveLogStreamRecordInDB(logStreamName);
+      logger.info("Added " + logStreamName + " to " + logStreamTrackingTable);
     }
   }
 
-  private async createLogStreamRecordInDB(logStream: string) {
-    await this.dynamodb.send(
+  private saveLogStreamRecordInDB(logStream: string) {
+    return this.dynamodb.send(
       new PutItemCommand({
         TableName: logStreamTrackingTable,
         Item: {
@@ -115,11 +114,10 @@ export class RedactHandler implements LambdaInterface {
         },
       })
     );
-    logger.info("Added " + logStream + " to " + logStreamTrackingTable);
   }
 
-  private async queryTable(logStream: string) {
-    return await this.dynamodb.send(
+  private async logStreamExists(logStream: string) {
+    const query = await this.dynamodb.send(
       new QueryCommand({
         TableName: logStreamTrackingTable,
         KeyConditionExpression: "logStreamName = :logStream",
@@ -130,6 +128,7 @@ export class RedactHandler implements LambdaInterface {
         },
       })
     );
+    return query.Count !== 0;
   }
 
   private formatMessage(message: string) {

@@ -148,7 +148,7 @@ Globals:
           - SecretArn: !FindInMap [Dynatrace, SecretArn, !Ref Environment]
 
 Resources:
-  LogStreamTrackingTbl:
+  RedactionLogStreamTrackingTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Sub ${AWS::StackName}-logstream-tracking-tbl
@@ -1554,10 +1554,10 @@ Resources:
         Role: !GetAtt CodeDeployServiceRole.Arn
       Environment:
         Variables:
-          LogStreamTrackingTbl: !Ref LogStreamTrackingTbl
+          RedactionLogStreamTrackingTable: !Ref RedactionLogStreamTrackingTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref LogStreamTrackingTbl
+            TableName: !Ref RedactionLogStreamTrackingTable
         - Statement:
             Effect: Allow
             Action: logs:*
