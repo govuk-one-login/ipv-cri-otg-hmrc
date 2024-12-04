@@ -247,6 +247,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: IsNotProdEnvironment
     Properties:
+      ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -950,6 +951,7 @@ Resources:
   OAuthTokenStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
+      ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
@@ -1034,6 +1036,7 @@ Resources:
   BearerTokenRetrievalStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
+      ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
@@ -1065,7 +1068,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-ExecutionFailedCanaryAlarm
-      AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine"
+      AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine. ${SupportManualURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       MetricName: ExecutionsFailed
@@ -1088,7 +1091,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-TaskFailedCanaryAlarm
-      AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine"
+      AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine. ${SupportManualURL}"
       MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
       Namespace: !Sub ${AWS::StackName}/LogMessages
       Statistic: Sum
@@ -1529,7 +1532,7 @@ Resources:
   LogRedactionFunctionCloudWatchPermissions:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt LogRedactionFunction.Arn
+      FunctionName: !Ref LogRedactionFunction.Alias
       Action: lambda:InvokeFunction
       Principal: !Join [".", ["logs", !Ref "AWS::Region", "amazonaws.com"]]
       SourceAccount: !Ref AWS::AccountId
@@ -1673,12 +1676,12 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
+      AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda. ${SupportManualURL}"
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryErrorAlarm
       MetricName: Errors
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-LogRedactionFunction:live"
+          Value: !Sub ${LogRedactionFunction}:live
         - Name: FunctionName
           Value: !Ref LogRedactionFunction
         - Name: ExecutedVersion
@@ -1707,7 +1710,7 @@ Resources:
     DependsOn: LogRedactionFunctionCloudWatchPermissions
     Properties:
       FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      DestinationArn: !Ref LogRedactionFunction.Alias
       FilterPattern: ""
       LogGroupName: !Ref OAuthTokenStateMachineLogGroup
 
@@ -1722,7 +1725,7 @@ Resources:
     DependsOn: LogRedactionFunctionCloudWatchPermissions
     Properties:
       FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      DestinationArn: !Ref LogRedactionFunction.Alias
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
 
