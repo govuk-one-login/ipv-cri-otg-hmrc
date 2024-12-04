@@ -1043,14 +1043,14 @@ Resources:
       AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
-      DatapointsToAlarm: 4
-      EvaluationPeriods: 12
+      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
       MetricName: ExecutionsFailed
       Namespace: AWS/States
-      Period: 300
+      Period: 3600
       Statistic: Sum
-      Threshold: 0
-      TreatMissingData: missing
+      Threshold: 3
+      TreatMissingData: notBreaching
       Dimensions:
         - Name: StateMachineArn
           Value: !Ref BearerTokenRetrievalStateMachine
