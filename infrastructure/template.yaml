@@ -38,12 +38,6 @@ Parameters:
     Description: "Specifies the configuration to enable gradual Lambda deployments"
     Type: String
     Default: "AllAtOnce"
-    AllowedValues:
-      - AllAtOnce
-      - Canary10Percent5Minutes
-      - Canary10Percent10Minutes
-      - Canary10Percent15Minutes
-      - Canary10Percent30Minutes
   StepFunctionsDeploymentPreference:
     Description: "Specifies the configuration to enable gradual StepFunction deployments"
     Type: String
