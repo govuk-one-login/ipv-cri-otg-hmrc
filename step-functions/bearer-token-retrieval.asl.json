@@ -8,9 +8,9 @@
         "value": "${StackName}"
       },
       "ResultPath": "$.StackName",
-      "Next": "Fetch Bearer Token"
+      "Next": "Fetch Bearer Token CANARY"
     },
-    "Fetch Bearer Token": {
+    "Fetch Bearer Token CANARY": {
       "Type": "Task",
       "Next": "Token and Expiry",
       "Parameters": {
