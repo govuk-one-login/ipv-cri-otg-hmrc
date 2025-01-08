@@ -1706,10 +1706,10 @@ Resources:
 
   OAuthTokenStateMachineLogsSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    DependsOn: LogRedactionFunctionCloudWatchAliasPermissions
     Properties:
       FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      DestinationArn: !Ref LogRedactionFunction.Alias
       FilterPattern: ""
       LogGroupName: !Ref OAuthTokenStateMachineLogGroup
 
@@ -1721,10 +1721,10 @@ Resources:
 
   BearerTokenRetrievalStateMachineSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    DependsOn: LogRedactionFunctionCloudWatchPermissions
+    DependsOn: LogRedactionFunctionCloudWatchAliasPermissions
     Properties:
       FilterName: "Redaction"
-      DestinationArn: !GetAtt LogRedactionFunction.Arn
+      DestinationArn: !Ref LogRedactionFunction.Alias
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenRetrievalStateMachineLogGroup
 
