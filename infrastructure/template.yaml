@@ -1528,6 +1528,14 @@ Resources:
       Principal: !Join [".", ["logs", !Ref "AWS::Region", "amazonaws.com"]]
       SourceAccount: !Ref AWS::AccountId
 
+  LogRedactionFunctionCloudWatchAliasPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LogRedactionFunction.Alias
+      Action: lambda:InvokeFunction
+      Principal: !Join [".", ["logs", !Ref "AWS::Region", "amazonaws.com"]]
+      SourceAccount: !Ref AWS::AccountId
+
   LogRedactionFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -1672,7 +1680,7 @@ Resources:
       MetricName: Errors
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-LogRedactionFunction:live"
+          Value: !Sub ${LogRedactionFunction}:live
         - Name: FunctionName
           Value: !Ref LogRedactionFunction
         - Name: ExecutedVersion
