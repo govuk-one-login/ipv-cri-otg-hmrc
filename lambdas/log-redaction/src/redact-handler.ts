@@ -14,6 +14,9 @@ import {
   PutItemCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
+import { initOpenTelemetry } from "../../open-telemetry/src/otel-setup";
+
+initOpenTelemetry();
 
 const logger = new Logger();
 const cloudwatch = new CloudWatchLogsClient();
