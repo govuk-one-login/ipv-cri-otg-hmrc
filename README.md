@@ -1,6 +1,6 @@
 # di-ipv-cri-otg-hmrc
 
-OAuth Token Generator for use with HMRC APIs
+OAuth Token Generator for use with HMRC APIs.
 
 ## Canaries
 When deploying using sam deploy, canary deployment strategy will be used which is set in LambdaDeploymentPreference and StepFunctionsDeploymentPreference in template.yaml file.
