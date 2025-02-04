@@ -8,10 +8,6 @@ import {
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
 
-import { initOpenTelemetry } from "../../open-telemetry/src/otel-setup";
-
-initOpenTelemetry();
-
 const logger = new Logger();
 
 export class BearerTokenHandler implements LambdaInterface {
