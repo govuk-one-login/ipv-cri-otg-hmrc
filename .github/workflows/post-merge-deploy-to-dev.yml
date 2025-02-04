@@ -36,7 +36,7 @@ jobs:
       - name: SAM build
         run: |
           mkdir out
-          sam build -t infrastructure/template.yaml -b out/
+          sam build -t infrastructure/template.yaml --no-cached -b out/
 
       - name: Deploy SAM app
         uses: govuk-one-login/devplatform-upload-action@v3.9
