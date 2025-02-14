@@ -22,7 +22,7 @@
     "@aws-lambda-powertools/metrics": "1.18.1",
     "@aws-lambda-powertools/tracer": "1.18.1",
     "@aws-sdk/client-cloudwatch-logs": "3.662.0",
-    "esbuild": "0.24.0"
+    "esbuild": "0.25.0"
   },
   "devDependencies": {
     "@aws-sdk/client-sfn": "3.405.0",
