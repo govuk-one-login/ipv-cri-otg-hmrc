@@ -25,13 +25,14 @@ jobs:
       cache-restore-keys: ${{ steps.build.outputs.cache-restore-keys }}
     steps:
       - name: Build SAM application
-        uses: govuk-one-login/github-actions/sam/build-application@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        uses: govuk-one-login/github-actions/sam/build-application@87ae1213145261e3837cc38d5b9317422acd95c2
         id: build
         with:
           template: infrastructure/template.yaml
           cache-name: otg-hmrc
           pull-repository: true
           source-dir: lambdas
+          sam-version: 1.132.0
 
   deploy:
     name: Deploy stack
