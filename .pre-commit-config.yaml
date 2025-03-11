@@ -23,7 +23,7 @@ repos:
         files: ".*\\.(js|ts)"
         pass_filenames: false
   - repo: https://github.com/aws-cloudformation/cfn-lint
-    rev: v0.85.2
+    rev: v1.27.0
     hooks:
       - id: cfn-lint
         files: .template\.ya?ml$

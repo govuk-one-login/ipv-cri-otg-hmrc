@@ -105,7 +105,7 @@ Globals:
   Function:
     Timeout: 30
     CodeUri: ..
-    Runtime: nodejs18.x
+    Runtime: nodejs22.x
     Architectures: [arm64]
     PermissionsBoundary:
       !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
