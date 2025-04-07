@@ -19,6 +19,8 @@ jobs:
   unit-tests:
     name: Run tests
     uses: ./.github/workflows/run-unit-tests.yml
+    with:
+      coverage-report: true
 
   mocked-tests:
     name: Run tests
