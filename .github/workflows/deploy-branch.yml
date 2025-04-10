@@ -32,7 +32,6 @@ jobs:
           cache-name: otg-hmrc
           pull-repository: true
           source-dir: lambdas
-          sam-version: 1.132.0
 
   deploy:
     name: Deploy stack
