@@ -13,10 +13,10 @@
     "compile": "tsc"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudformation": "3.405.0",
-    "@aws-sdk/client-dynamodb": "3.398.0",
-    "@aws-sdk/client-sfn": "3.405.0",
-    "@aws-sdk/lib-dynamodb": "3.398.0",
+    "@aws-sdk/client-cloudformation": "3.787.0",
+    "@aws-sdk/client-dynamodb": "3.788.0",
+    "@aws-sdk/client-sfn": "3.787.0",
+    "@aws-sdk/lib-dynamodb": "3.789.0",
     "testcontainers": "10.23.0"
   }
 }
