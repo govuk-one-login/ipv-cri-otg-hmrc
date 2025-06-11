@@ -59,6 +59,9 @@ Conditions:
   IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
+  DeployNonProdAlarms: !And
+      - !Condition IsNotProdEnvironment
+      - !Condition DeployAlarms
   UseCanaryDeploymentAlarms: !Or
     - !Not [!Equals [!Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE]]
     - !Not [!Equals [!Ref LambdaDeploymentPreference, AllAtOnce]]
@@ -239,7 +242,7 @@ Resources:
 
   SandboxTokenRefreshSchedulerAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: IsNotProdEnvironment
+    Condition: DeployNonProdAlarms
     Properties:
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -943,6 +946,7 @@ Resources:
 
   OAuthTokenStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
     Properties:
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -1027,6 +1031,7 @@ Resources:
 
   BearerTokenRetrievalStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
     Properties:
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -1551,7 +1556,7 @@ Resources:
         Type: !Ref LambdaDeploymentPreference
         Alarms: !If
           - UseCanaryDeploymentAlarms
-          - [!Ref LogRedactionFunctionCanaryErrorAlarm, !Ref LogRedactionFunctionFatalErrorAlarm]
+          - [!Ref LogRedactionFunctionCanaryErrorAlarm]
           - [!Ref AWS::NoValue]
         Role: !GetAtt CodeDeployServiceRole.Arn
       Environment:
@@ -1621,6 +1626,7 @@ Resources:
   LogRedactionFunctionFatalErrorAlarm:
     DependsOn: LogRedactionFunctionFatalErrorMetricFilter
     Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-FatalErrorAlarm
       AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
