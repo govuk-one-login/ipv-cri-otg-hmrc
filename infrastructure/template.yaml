@@ -30,10 +30,6 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Description: The SSM parameter containing the list of VPC endpoints allowed to invoke the private API
     Default: /otg-hmrc/config/AllowedVPCEndpointIDs
-  SupportManualURL:
-    Description: Link to the OTG support manual
-    Type: String
-    Default: "https://team-manual.account.gov.uk/teams/CRI-Orange-team/supporting-cri-orange/hmrc-otg-runbook/"
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments"
     Type: String
@@ -67,6 +63,10 @@ Conditions:
     - !Not [!Equals [!Ref LambdaDeploymentPreference, AllAtOnce]]
 
 Mappings:
+  StaticVariables:
+    Urls:
+      SupportManualURL: "https://team-manual.account.gov.uk/teams/CRI-Orange-team/supporting-cri-orange/hmrc-otg-runbook/"
+
   Dynatrace:
     SecretArn:
       dev: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
@@ -248,7 +248,9 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: !Sub Alarm if token refresh queue grows beyond 0 messages. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm if token refresh queue grows beyond 0 messages. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
@@ -332,7 +334,9 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
-      AlarmDescription: !Sub Alarm if token refresh queue grows beyond 0 messages. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm if token refresh queue grows beyond 0 messages. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: QueueName
@@ -491,7 +495,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-PrivateOTGApi-FatalErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm for when a fatal error occurs in the PrivateOTGApi. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -559,7 +565,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-ErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm for errors in the BearerTokenHandlerFunction. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -593,7 +601,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-FatalErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm for a fatal error in the BearerTokenHandlerFunction. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -621,7 +631,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      AlarmDescription: !Sub Trigger if the ${BearerTokenHandlerFunction} lambda throttles. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Trigger if the ${BearerTokenHandlerFunction} lambda throttles. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenHandlerFunction-throttles
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -954,7 +966,9 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
-      AlarmDescription: !Sub OAuth Token failed 4 or more requests in the last hour. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "OAuth Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-OAuth-state-machine-alarms
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 1
@@ -1039,7 +1053,9 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-critical-alert-topic
-      AlarmDescription: !Sub Bearer Token failed 4 or more requests in the last hour. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Bearer Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrievalStateMachineAlarm
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 1
@@ -1146,7 +1162,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorAlarm
-      AlarmDescription: !Sub There has been a small proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a small proportion of 5XX errors on the otg api-gateway. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1195,7 +1213,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-5XXErrorCriticalAlarm
-      AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the otg api-gateway. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a significant proportion of 5XX errors on the otg api-gateway. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -1246,7 +1266,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorAlarm
-      AlarmDescription: !Sub There has been a small proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a small proportion of 5XX errors on the Token endpoint. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1307,7 +1329,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-Token5XXApiGwErrorCriticalAlarm
-      AlarmDescription: !Sub There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a significant proportion of 5XX errors on the Token endpoint. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -1371,7 +1395,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-4XXErrorAlarm
-      AlarmDescription: !Sub There has been a small proportion of 4XX errors on the otg api-gateway. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a small proportion of 4XX errors on the otg api-gateway. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1420,7 +1446,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-Token4XXApiGwErrorAlarm
-      AlarmDescription: !Sub There has been a small proportion of 4XX errors on the Token endpoint. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "There has been a small proportion of 4XX errors on the Token endpoint. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1482,8 +1510,10 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-apiGWLatencyAlarm
-      AlarmDescription: !Sub There has been increased latency on backend api-gateway. ${SupportManualURL}
-      ActionsEnabled: false  # disabled until we're ready for alarm actions to fire
+      AlarmDescription: !Sub
+        - "There has been increased latency on backend api-gateway. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
+      ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -1596,7 +1626,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-ErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm for when errors occur in the LogRedactionFunction. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1629,7 +1661,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-FatalErrorAlarm
-      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Alarm for when a fatal error occurs in the LogRedactionFunction. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
@@ -1657,7 +1691,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
-      AlarmDescription: !Sub Trigger if the ${LogRedactionFunction} lambda throttles. ${SupportManualURL}
+      AlarmDescription: !Sub
+        - "Trigger if the ${LogRedactionFunction} lambda throttles. Runbook: ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-throttles
       MetricName: Throttles
       Namespace: AWS/Lambda
