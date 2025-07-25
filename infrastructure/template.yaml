@@ -701,7 +701,7 @@ Resources:
             Resource: "*"
             Action: "kms:*"
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_ApprovedAdmin_dfdfe5a773e0ef1e"
           - Sid: DenyAllOthers
             Effect: Deny
             Resource: "*"
@@ -714,7 +714,7 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !GetAtt LogRedactionFunctionRole.Arn
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_ApprovedAdmin_dfdfe5a773e0ef1e"
               ArnNotLike:
                 "kms:EncryptionContext:aws:logs:arn":
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}/LogRedactionFunction"
@@ -877,7 +877,7 @@ Resources:
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_ApprovedAdmin_dfdfe5a773e0ef1e"
           - Sid: DenyAllOthers
             Effect: "Deny"
             Resource: !Ref TOTPSecretProduction
@@ -889,7 +889,7 @@ Resources:
                 "aws:PrincipalArn":
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_di-ipv-cri-otg-hmrc-prod-adm-kms_c1de3f0ff8700ff0"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_ApprovedAdmin_dfdfe5a773e0ef1e"
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
