@@ -649,7 +649,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
   SecretsManagerHandlerEncryptionKey:
-    Condition: IsProdEnvironment
     Type: AWS::KMS::Key
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
@@ -743,7 +742,6 @@ Resources:
 
   SecretsManagerHandlerEncryptionKeyAlias:
     Type: AWS::KMS::Alias
-    Condition: IsProdEnvironment
     Properties:
       AliasName: !Sub alias/secretsmanager/token-${AWS::StackName}
       TargetKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
@@ -843,8 +841,12 @@ Resources:
   TOTPSecretSandbox:
     Type: AWS::SecretsManager::Secret
     Condition: IsNotProdEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
+      KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions for sandbox and prod environments"
 
   TOTPSecretMonitoring:
     Type: AWS::SecretsManager::Secret
@@ -860,7 +862,57 @@ Resources:
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/production
       KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
-      Description: "TOTP Secret - encrypted via CMK, with restricted permissions in the production environment"
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions for sandbox and prod environment"
+
+  TOTPSecretPolicySandbox:
+    Condition: IsNotProdEnvironment
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      BlockPublicPolicy: false
+      SecretId: !GetAtt TOTPSecretSandbox.Id
+      ResourcePolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AccessForPipelineRole
+            Effect: Allow
+            Resource: !Ref TOTPSecretSandbox
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
+          - Sid: AllowBearerTokenHandlerFunction
+            Effect: "Allow"
+            Resource: !Ref TOTPSecretSandbox
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !GetAtt BearerTokenHandlerFunctionRole.Arn
+          - Sid: ElevatedAdminAccess
+            Effect: Allow
+            Resource: !Ref TOTPSecretSandbox
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
+          - Sid: DenyAllOthers
+            Effect: "Deny"
+            Resource: !Ref TOTPSecretSandbox
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !GetAtt BearerTokenHandlerFunctionRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
 
   TOTPSecretPolicy:
     Condition: IsProdEnvironment
@@ -897,7 +949,6 @@ Resources:
               StringLike:
                 "aws:PrincipalArn":
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
           - Sid: DenyAllOthers
             Effect: "Deny"
             Resource: !Ref TOTPSecretProduction
@@ -910,7 +961,6 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
 
   OAuthTokenStateMachine:
     Type: AWS::Serverless::StateMachine
