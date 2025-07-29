@@ -668,6 +668,7 @@ Resources:
             Condition:
               StringLike:
                 "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
           - Sid: AccessForStateMachine
             Effect: Allow
@@ -720,7 +721,8 @@ Resources:
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !GetAtt LogRedactionFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
@@ -882,6 +884,7 @@ Resources:
             Condition:
               StringLike:
                 "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
           - Sid: AllowBearerTokenHandlerFunction
             Effect: "Allow"
@@ -909,7 +912,8 @@ Resources:
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
@@ -958,7 +962,7 @@ Resources:
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole-0a8d7d508bb6"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
                   - !GetAtt BearerTokenHandlerFunctionRole.Arn
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
 
