@@ -664,7 +664,7 @@ Resources:
             Resource: "*"
             Action: "kms:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -704,7 +704,7 @@ Resources:
             Resource: "*"
             Action: "kms:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -716,7 +716,7 @@ Resources:
             Resource: "*"
             Action: "kms:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
@@ -878,7 +878,7 @@ Resources:
             Resource: !Ref TOTPSecretSandbox
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -894,7 +894,7 @@ Resources:
             Resource: !Ref TOTPSecretSandbox
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -905,7 +905,7 @@ Resources:
             Resource: !Ref TOTPSecretSandbox
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
@@ -928,7 +928,7 @@ Resources:
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -944,7 +944,7 @@ Resources:
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringLike:
                 "aws:PrincipalArn":
@@ -954,7 +954,7 @@ Resources:
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
             Principal:
-              AWS: "*"
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Condition:
               StringNotLike:
                 "aws:PrincipalArn":
