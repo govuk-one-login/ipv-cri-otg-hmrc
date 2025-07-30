@@ -875,35 +875,7 @@ Resources:
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
-          - Sid: AccessForPipelineRole
-            Effect: Allow
-            Resource: !Ref TOTPSecretSandbox
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Condition:
-              StringLike:
-                "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
-          - Sid: AllowBearerTokenHandlerFunction
-            Effect: "Allow"
-            Resource: !Ref TOTPSecretSandbox
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !GetAtt BearerTokenHandlerFunctionRole.Arn
-          - Sid: ElevatedAdminAccess
-            Effect: Allow
-            Resource: !Ref TOTPSecretSandbox
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Condition:
-              StringLike:
-                "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
-          - Sid: DenyAllOthers
+          - Sid: DenyAllExceptAllowed
             Effect: "Deny"
             Resource: !Ref TOTPSecretSandbox
             Action: "secretsmanager:*"
@@ -927,33 +899,7 @@ Resources:
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
-          - Sid: AccessForPipelineRole
-            Effect: Allow
-            Resource: !Ref TOTPSecretProduction
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Condition:
-              StringLike:
-                "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
-          - Sid: AllowBearerTokenHandlerFunction
-            Effect: "Allow"
-            Resource: !Ref TOTPSecretProduction
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !GetAtt BearerTokenHandlerFunctionRole.Arn
-          - Sid: ElevatedAdminAccess
-            Effect: Allow
-            Resource: !Ref TOTPSecretProduction
-            Action: "secretsmanager:*"
-            Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Condition:
-              StringLike:
-                "aws:PrincipalArn":
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
-          - Sid: DenyAllOthers
+          - Sid: DenyAllExceptAllowed
             Effect: "Deny"
             Resource: !Ref TOTPSecretProduction
             Action: "secretsmanager:*"
