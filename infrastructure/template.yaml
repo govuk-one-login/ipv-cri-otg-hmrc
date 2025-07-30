@@ -853,8 +853,12 @@ Resources:
   TOTPSecretMonitoring:
     Type: AWS::SecretsManager::Secret
     Condition: IsNotProdOrIntegrationEnvironment
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/monitoring
+      KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
+      Description: "TOTP Secret - encrypted via CMK, with restricted permissions for sandbox and prod environments"
 
   TOTPSecretProduction: # Actual secrets value to be added manually by a tech lead via clickops (Do not add/edit the value in this template)
     Type: AWS::SecretsManager::Secret
@@ -878,6 +882,30 @@ Resources:
           - Sid: DenyAllExceptAllowed
             Effect: "Deny"
             Resource: !Ref TOTPSecretSandbox
+            Action: "secretsmanager:*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Condition:
+              StringNotLike:
+                "aws:PrincipalArn":
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubPreMergeRole-otg-hmrc*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/PL-otg-hmrc-service-pl-DeployRole*"
+                  - !GetAtt BearerTokenHandlerFunctionRole.Arn
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_ApprovedAdmin*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-reserved/sso.amazonaws.com/${AWS::Region}/AWSReservedSSO_AdministratorAccessPermission*"
+
+  TOTPSecretPolicyMonitoring:
+    Condition: IsNotProdOrIntegrationEnvironment
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      BlockPublicPolicy: false
+      SecretId: !GetAtt TOTPSecretMonitoring.Id
+      ResourcePolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyAllExceptAllowed
+            Effect: "Deny"
+            Resource: !Ref TOTPSecretMonitoring
             Action: "secretsmanager:*"
             Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
