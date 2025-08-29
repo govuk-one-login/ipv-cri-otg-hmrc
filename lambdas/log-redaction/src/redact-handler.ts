@@ -100,6 +100,9 @@ export class RedactHandler implements LambdaInterface {
         if (error instanceof ResourceAlreadyExistsException) {
           logger.info(logStreamName + " already exists");
         }
+        else {
+          throw error;
+        }
       }
 
       await this.saveLogStreamRecordInDB(logStreamName);
