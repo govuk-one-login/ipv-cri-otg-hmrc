@@ -4,6 +4,7 @@ import {
   CreateLogStreamCommand,
   PutLogEventsCommand,
   PutLogEventsCommandOutput,
+  ResourceAlreadyExistsException,
 } from "@aws-sdk/client-cloudwatch-logs";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { CloudWatchLogsDecodedData, CloudWatchLogsEvent } from "aws-lambda";
@@ -88,12 +89,21 @@ export class RedactHandler implements LambdaInterface {
     if (!(await this.logStreamExists(logStreamName))) {
       logger.info("Creating log stream " + logStreamName);
 
-      await cloudwatch.send(
-        new CreateLogStreamCommand({
-          logGroupName: logGroupName,
-          logStreamName: logStreamName,
-        })
-      );
+      try {
+        await cloudwatch.send(
+          new CreateLogStreamCommand({
+            logGroupName: logGroupName,
+            logStreamName: logStreamName,
+          })
+        );
+      } catch (error: unknown) {
+        if (error instanceof ResourceAlreadyExistsException) {
+          logger.info(logStreamName + " already exists");
+        }
+        else {
+          throw error;
+        }
+      }
 
       await this.saveLogStreamRecordInDB(logStreamName);
       logger.info("Added " + logStreamName + " to " + logStreamTrackingTable);
