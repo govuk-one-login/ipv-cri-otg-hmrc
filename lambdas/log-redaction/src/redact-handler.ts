@@ -6,7 +6,7 @@ import {
   PutLogEventsCommandOutput,
   ResourceAlreadyExistsException,
 } from "@aws-sdk/client-cloudwatch-logs";
-import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { LambdaInterface } from "@aws-lambda-powertools/commons/types";
 import { CloudWatchLogsDecodedData, CloudWatchLogsEvent } from "aws-lambda";
 import zlib from "zlib";
 import { redact } from "./redactor";
@@ -99,8 +99,7 @@ export class RedactHandler implements LambdaInterface {
       } catch (error: unknown) {
         if (error instanceof ResourceAlreadyExistsException) {
           logger.info(logStreamName + " already exists");
-        }
-        else {
+        } else {
           throw error;
         }
       }
