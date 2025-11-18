@@ -49,10 +49,11 @@ Conditions:
   IsDevEnvironment: !Equals [!Ref Environment, dev]
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
   IsDevLikeEnvironment: !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsDevBuildEnvironment: !Or [!Condition IsDevLikeEnvironment, !Equals [!Ref Environment, build]]
   IsProdOrIntegrationEnvironment: !Or [!Condition IsProdEnvironment, !Equals [!Ref Environment, integration]]
   IsProdEnvironment: !Equals [!Ref Environment, production]
   IsNotProdOrIntegrationEnvironment: !Not [!Condition IsProdOrIntegrationEnvironment]
-  IsNotDevLikeEnvironment: !Not [!Condition IsDevLikeEnvironment]
+  IsNotDevBuildEnvironment: !Not [!Condition IsDevBuildEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
   DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
   DeployNonProdAlarms: !And
@@ -472,7 +473,7 @@ Resources:
 
   PrivateOTGApiAccessLogSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevLikeEnvironment
+    Condition: IsNotDevBuildEnvironment
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref PrivateOTGApiAccessLogGroup
@@ -541,7 +542,7 @@ Resources:
 
   BearerTokenHandlerFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevLikeEnvironment
+    Condition: IsNotDevBuildEnvironment
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
@@ -988,7 +989,7 @@ Resources:
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevLikeEnvironment
+    Condition: IsNotDevBuildEnvironment
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref RedactedOAuthTokenStateMachineLogGroup
@@ -1075,7 +1076,7 @@ Resources:
 
   BearerTokenRetrievalStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevLikeEnvironment
+    Condition: IsNotDevBuildEnvironment
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref RedactedBearerTokenRetrievalStateMachineLogGroup
