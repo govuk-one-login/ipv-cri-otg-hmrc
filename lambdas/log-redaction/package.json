@@ -10,9 +10,9 @@
     "compile": "tsc"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.682.0",
-    "@aws-lambda-powertools/parameters": "2.28.1",
-    "@aws-sdk/client-secrets-manager": "^3.549.0",
+    "@aws-sdk/client-dynamodb": "^3.986.0",
+    "@aws-lambda-powertools/parameters": "2.31.0",
+    "@aws-sdk/client-secrets-manager": "^3.986.0",
     "aws-sdk-client-mock": "^4.1.0"
   }
 }
