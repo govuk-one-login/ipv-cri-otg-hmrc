@@ -245,9 +245,9 @@ Resources:
     Condition: DeployNonProdAlarms
     Properties:
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub
         - "Alarm if token refresh queue grows beyond 0 messages. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -257,7 +257,7 @@ Resources:
           Value: !GetAtt SandboxTokenDeadLetterQueue.QueueName
       EvaluationPeriods: 1
       InsufficientDataActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
       Period: 300
@@ -331,9 +331,9 @@ Resources:
     Condition: IsProdEnvironment
     Properties:
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub
         - "Alarm if token refresh queue grows beyond 0 messages. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -343,7 +343,7 @@ Resources:
           Value: !GetAtt ProductionTokenDeadLetterQueue.QueueName
       EvaluationPeriods: 1
       InsufficientDataActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
       Period: 300
@@ -500,9 +500,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: PrivateOTGApi-FatalError
       Namespace: !Sub ${AWS::StackName}/LogMessages
@@ -570,9 +570,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: BearerTokenHandlerFunction-Error
       Namespace: !Sub ${AWS::StackName}/LogMessages
@@ -606,9 +606,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: BearerTokenHandlerFunction-FatalError
       Namespace: !Sub ${AWS::StackName}/LogMessages
@@ -627,9 +627,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${BearerTokenHandlerFunction} lambda throttles. Runbook: ${SupportManualURL}"
@@ -1011,10 +1011,10 @@ Resources:
     Properties:
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       AlarmDescription: !Sub
         - "OAuth Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -1098,10 +1098,10 @@ Resources:
     Properties:
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       AlarmDescription: !Sub
         - "Bearer Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -1125,9 +1125,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-ExecutionFailedCanaryAlarm
       AlarmDescription: !Sub "ExecutionFailed error returned from the BearerTokenRetrievalStateMachine"
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -1148,9 +1148,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub ${AWS::StackName}-${Environment}-BearerTokenRetrieval-TaskFailedCanaryAlarm
       AlarmDescription: !Sub "TaskFailed error returned from the BearerTokenRetrievalStateMachine"
       MetricName: "BearerTokenRetrievalStateMachineTaskFailed"
@@ -1216,9 +1216,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1268,10 +1268,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1320,9 +1320,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1384,10 +1384,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1449,9 +1449,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1500,9 +1500,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1564,9 +1564,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1680,9 +1680,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: LogRedactionFunction-Error
       Namespace: !Sub ${AWS::StackName}/LogMessages
@@ -1715,9 +1715,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: LogRedactionFunction-FatalError
       Namespace: !Sub ${AWS::StackName}/LogMessages
@@ -1736,9 +1736,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${LogRedactionFunction} lambda throttles. Runbook: ${SupportManualURL}"
@@ -1763,9 +1763,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "Error returned from the LogRedactionFunction Lambda."
       AlarmName: !Sub ${AWS::StackName}-${Environment}-LogRedactionFunction-CanaryErrorAlarm
       MetricName: Errors
