@@ -627,9 +627,11 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
       OKActions:
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${BearerTokenHandlerFunction} lambda throttles. Runbook: ${SupportManualURL}"
@@ -1010,11 +1012,11 @@ Resources:
     Condition: DeployAlarms
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmDescription: !Sub
         - "OAuth Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -1097,11 +1099,11 @@ Resources:
     Condition: DeployAlarms
     Properties:
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmDescription: !Sub
         - "Bearer Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
@@ -1267,11 +1269,11 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1383,11 +1385,11 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
@@ -1736,9 +1738,11 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
       OKActions:
-        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn]
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${LogRedactionFunction} lambda throttles. Runbook: ${SupportManualURL}"
