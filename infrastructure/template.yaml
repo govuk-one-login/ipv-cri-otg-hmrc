@@ -26,6 +26,9 @@ Parameters:
   VpcStackName:
     Type: String
     Default: otg-vpc
+  SpokeVpcStackName:
+    Type: String
+    Default: spoke-vpc
   AllowedVpcEndpointIds:
     Type: AWS::SSM::Parameter::Value<String>
     Description: The SSM parameter containing the list of VPC endpoints allowed to invoke the private API
@@ -115,10 +118,11 @@ Globals:
       !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
     VpcConfig:
       SecurityGroupIds:
-        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+        - Fn::ImportValue: !Sub ${SpokeVpcStackName}-AWSServicesEndpointSecurityGroupId
       SubnetIds:
-        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
-        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${SpokeVpcStackName}-ProtectedSubnetIdA
+        - Fn::ImportValue: !Sub ${SpokeVpcStackName}-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${SpokeVpcStackName}-ProtectedSubnetIdC
     Layers:
       # SEE https://github.com/govuk-one-login/observability-infrastructure/tree/main/lambdalayer
       - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1
@@ -462,7 +466,7 @@ Resources:
                         - - !Ref AllowedVpcEndpointIds
                           - !If
                             - IsNotProdOrIntegrationEnvironment
-                            - Fn::ImportValue: !Sub ${VpcStackName}-ExecuteApiGatewayEndpointId
+                            - Fn::ImportValue: !Sub ${SpokeVpcStackName}-ExecuteApiGatewayEndpointId
                             - !Ref AWS::NoValue
 
   PrivateOTGApiAccessLogGroup:
