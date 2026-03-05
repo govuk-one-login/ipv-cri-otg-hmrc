@@ -1012,10 +1012,10 @@ Resources:
     Condition: DeployAlarms
     Properties:
       OKActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmDescription: !Sub
         - "OAuth Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
@@ -1099,10 +1099,10 @@ Resources:
     Condition: DeployAlarms
     Properties:
       OKActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmDescription: !Sub
         - "Bearer Token failed 4 or more requests in the last hour. Runbook: ${SupportManualURL}"
@@ -1269,10 +1269,10 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
@@ -1385,10 +1385,10 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !If [IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !Ref "AWS::NoValue"]
         - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       EvaluationPeriods: 5
