@@ -115,10 +115,11 @@ Globals:
       !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
     VpcConfig:
       SecurityGroupIds:
-        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+        - Fn::ImportValue: !Sub spoke-vpc-AWSServicesEndpointSecurityGroupId
       SubnetIds:
-        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
-        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - !ImportValue spoke-vpc-ProtectedSubnetIdA
+        - !ImportValue spoke-vpc-ProtectedSubnetIdB
+        - !ImportValue spoke-vpc-ProtectedSubnetIdC
     Layers:
       # SEE https://github.com/govuk-one-login/observability-infrastructure/tree/main/lambdalayer
       - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1
@@ -514,6 +515,24 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  TestHandlerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Sourcemap: true
+    Properties:
+      Handler: lambdas/test-lambda/src/test-handler.lambdaHandler
+      LoggingConfig:
+        LogGroup: !Ref TestHandlerFunctionLogGroup
+      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+
+  TestHandlerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}/TestHandlerFunction
+      RetentionInDays: 30
 
   BearerTokenHandlerFunction:
     Type: AWS::Serverless::Function
