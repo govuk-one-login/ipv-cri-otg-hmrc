@@ -48,17 +48,22 @@ Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
   IsDevEnvironment: !Equals [!Ref Environment, dev]
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
-  IsDevLikeEnvironment: !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
-  IsDevBuildEnvironment: !Or [!Condition IsDevLikeEnvironment, !Equals [!Ref Environment, build]]
-  IsProdOrIntegrationEnvironment: !Or [!Condition IsProdEnvironment, !Equals [!Ref Environment, integration]]
+  IsDevLikeEnvironment:
+    !Or [!Condition IsLocalDevEnvironment, !Condition IsDevEnvironment]
+  IsDevBuildEnvironment:
+    !Or [!Condition IsDevLikeEnvironment, !Equals [!Ref Environment, build]]
+  IsProdOrIntegrationEnvironment:
+    !Or [!Condition IsProdEnvironment, !Equals [!Ref Environment, integration]]
   IsProdEnvironment: !Equals [!Ref Environment, production]
-  IsNotProdOrIntegrationEnvironment: !Not [!Condition IsProdOrIntegrationEnvironment]
+  IsNotProdOrIntegrationEnvironment:
+    !Not [!Condition IsProdOrIntegrationEnvironment]
   IsNotDevBuildEnvironment: !Not [!Condition IsDevBuildEnvironment]
   IsNotProdEnvironment: !Not [!Condition IsProdEnvironment]
-  DeployAlarms: !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
+  DeployAlarms:
+    !Or [!Condition IsProdEnvironment, !Equals [!Ref DeployAlarmsInDev, true]]
   DeployNonProdAlarms: !And
-      - !Condition IsNotProdEnvironment
-      - !Condition DeployAlarms
+    - !Condition IsNotProdEnvironment
+    - !Condition DeployAlarms
   UseCanaryDeploymentAlarms: !Or
     - !Not [!Equals [!Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE]]
     - !Not [!Equals [!Ref LambdaDeploymentPreference, AllAtOnce]]
@@ -121,7 +126,7 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
     Layers:
       # SEE https://github.com/govuk-one-login/observability-infrastructure/tree/main/lambdalayer
-      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_331_39_20260206-150338_with_collector_nodejs_arm:1
     AutoPublishAlias: live
     Environment:
       Variables:
@@ -192,8 +197,10 @@ Resources:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "sandbox" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds: !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
-          MaximumRetryAttempts: !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
+          MaximumEventAgeInSeconds:
+            !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
+          MaximumRetryAttempts:
+            !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
         DeadLetterConfig:
           Arn: !GetAtt SandboxTokenDeadLetterQueue.Arn
@@ -278,8 +285,10 @@ Resources:
         Arn: !Ref OAuthTokenStateMachine
         Input: '{ "tokenType": "production" }'
         RetryPolicy:
-          MaximumEventAgeInSeconds: !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
-          MaximumRetryAttempts: !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
+          MaximumEventAgeInSeconds:
+            !FindInMap [SchedulerConfig, !Ref Environment, RetryDelaySeconds]
+          MaximumRetryAttempts:
+            !FindInMap [SchedulerConfig, !Ref Environment, NumRetries]
         RoleArn: !GetAtt RefreshSchedulerRole.Arn
         DeadLetterConfig:
           Arn: !GetAtt ProductionTokenDeadLetterQueue.Arn
@@ -355,7 +364,12 @@ Resources:
     Properties:
       RoleName: !Sub ${AWS::StackName}-RefreshSchedulerRole
       Description: Role to allow EventBridge to run a state machine
-      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          UsePermissionsBoundary,
+          !Ref PermissionsBoundary,
+          !Ref AWS::NoValue,
+        ]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -477,7 +491,8 @@ Resources:
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref PrivateOTGApiAccessLogGroup
-      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   PrivateOTGApiFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -525,7 +540,8 @@ Resources:
       Handler: lambdas/bearer-token-handler/src/bearer-token-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Ref BearerTokenHandlerFunctionLogGroup
-      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      CodeSigningConfigArn:
+        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Policies:
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:HMRC/TOTPSecret/*
@@ -546,7 +562,8 @@ Resources:
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref BearerTokenHandlerFunctionLogGroup
-      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   # BearerTokenHandlerFunction Alarms
   BearerTokenHandlerFunctionErrorMetricFilter:
@@ -657,7 +674,7 @@ Resources:
       EnableKeyRotation: true
       KeySpec: SYMMETRIC_DEFAULT
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: AccessForPipelineRole
             Effect: Allow
@@ -674,10 +691,11 @@ Resources:
             Effect: Allow
             Resource: "*"
             Principal:
-              AWS: [
-                !GetAtt LogRedactionFunctionRole.Arn,
-                !GetAtt BearerTokenHandlerFunctionRole.Arn
-              ]
+              AWS:
+                [
+                  !GetAtt LogRedactionFunctionRole.Arn,
+                  !GetAtt BearerTokenHandlerFunctionRole.Arn,
+                ]
             Action:
               - "kms:Encrypt*"
               - "kms:Decrypt*"
@@ -757,7 +775,7 @@ Resources:
     Condition: IsNotProdOrIntegrationEnvironment
     Properties:
       Name: !Sub HMRC/BearerToken/${AWS::StackName}/stub
-      SecretString: "{\"token\":\"goodToken\",\"tokenExpiry\":\"1726568475877\",\"tokenExpiryInMinutes\":\"120\"}"
+      SecretString: '{"token":"goodToken","tokenExpiry":"1726568475877","tokenExpiryInMinutes":"120"}'
 
   BearerTokenSandbox:
     Type: AWS::SecretsManager::Secret
@@ -945,7 +963,12 @@ Resources:
     Properties:
       Name: !Sub ${AWS::StackName}-OAuthTokenGenerator
       DefinitionUri: ../step-functions/oauth-token-generator.asl.json
-      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          UsePermissionsBoundary,
+          !Ref PermissionsBoundary,
+          !Ref AWS::NoValue,
+        ]
       DefinitionSubstitutions:
         BearerTokenFunctionArn: !GetAtt BearerTokenHandlerFunction.Arn
         StackName: !Ref AWS::StackName
@@ -985,7 +1008,12 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-OAuth-state-machine-logs
       RetentionInDays: 30
-      KmsKeyId: !If [IsProdEnvironment, !GetAtt SecretsManagerHandlerEncryptionKey.Arn, !Ref AWS::NoValue]
+      KmsKeyId:
+        !If [
+          IsProdEnvironment,
+          !GetAtt SecretsManagerHandlerEncryptionKey.Arn,
+          !Ref AWS::NoValue,
+        ]
 
   OAuthTokenStateMachineLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -993,7 +1021,8 @@ Resources:
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref RedactedOAuthTokenStateMachineLogGroup
-      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   OAuthTokenStateMachineFailedMetric:
     Type: AWS::Logs::MetricFilter
@@ -1038,7 +1067,12 @@ Resources:
       Type: EXPRESS
       Name: !Sub ${AWS::StackName}-BearerTokenRetrieval
       DefinitionUri: ../step-functions/bearer-token-retrieval.asl.json
-      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          UsePermissionsBoundary,
+          !Ref PermissionsBoundary,
+          !Ref AWS::NoValue,
+        ]
       DefinitionSubstitutions:
         StackName: !Ref AWS::StackName
       Logging:
@@ -1080,7 +1114,8 @@ Resources:
     Properties:
       FilterPattern: ""
       LogGroupName: !Ref RedactedBearerTokenRetrievalStateMachineLogGroup
-      DestinationArn: !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
 
   BearerTokenRetrievalStateMachineTaskFailedMetric:
     Type: AWS::Logs::MetricFilter
@@ -1166,7 +1201,12 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Description: Role to allow API gateway to execute step function
-      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          UsePermissionsBoundary,
+          !Ref PermissionsBoundary,
+          !Ref AWS::NoValue,
+        ]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -1630,7 +1670,8 @@ Resources:
       Handler: lambdas/log-redaction/src/redact-handler.lambdaHandler
       LoggingConfig:
         LogGroup: !Ref LogRedactionFunctionLogGroup
-      CodeSigningConfigArn: !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      CodeSigningConfigArn:
+        !If [EnforceCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Alarms: !If
@@ -1833,7 +1874,12 @@ Resources:
                 - codedeploy.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
-      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          UsePermissionsBoundary,
+          !Ref PermissionsBoundary,
+          !Ref AWS::NoValue,
+        ]
 
 Outputs:
   PrivateApiGatewayId:
