@@ -256,13 +256,12 @@ Resources:
         - Name: QueueName
           Value: !GetAtt SandboxTokenDeadLetterQueue.QueueName
       EvaluationPeriods: 1
-      InsufficientDataActions:
-        - !ImportValue build-notifications-WarningAlertsTopicArn
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
       Period: 300
       Statistic: Sum
       Threshold: 0
+      TreatMissingData: notBreaching
 
   ProductionTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
@@ -342,13 +341,12 @@ Resources:
         - Name: QueueName
           Value: !GetAtt ProductionTokenDeadLetterQueue.QueueName
       EvaluationPeriods: 1
-      InsufficientDataActions:
-        - !ImportValue build-notifications-WarningAlertsTopicArn
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
       Period: 300
       Statistic: Sum
       Threshold: 0
+      TreatMissingData: notBreaching
 
   RefreshSchedulerRole:
     Type: AWS::IAM::Role
