@@ -3,9 +3,9 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "unit:all": "jest --runInBand",
-    "unit:aws": "jest --silent --select-projects integration-tests/aws --runInBand",
-    "unit:mocked": "jest --silent --select-projects integration-tests/mocked",
+    "unit:all": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "unit:aws": "NODE_OPTIONS=--experimental-vm-modules jest --silent --select-projects integration-tests/aws --runInBand",
+    "unit:mocked": "NODE_OPTIONS=--experimental-vm-modules jest --silent --select-projects integration-tests/mocked",
     "test:all": "npm run unit:all --",
     "test:aws": "npm run unit:aws --",
     "test:mocked": "npm run unit:mocked --",
@@ -13,10 +13,8 @@
     "compile": "tsc"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudformation": "3.1000.0",
-    "@aws-sdk/client-dynamodb": "3.1000.0",
-    "@aws-sdk/client-sfn": "3.1000.0",
-    "@aws-sdk/lib-dynamodb": "3.1000.0",
+    "@aws-sdk/client-cloudformation": "3.1012.0",
+    "@aws-sdk/lib-dynamodb": "3.1012.0",
     "testcontainers": "11.12.0"
   }
 }
