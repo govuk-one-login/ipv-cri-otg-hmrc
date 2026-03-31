@@ -19,12 +19,23 @@ jobs:
     environment: development
 
     steps:
+      - name: Generate stack name prefix
+        id: stack-name-prefix
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+          if [[ "$BRANCH" == dependabot/* ]] && [ -n "$PR_NUM" ]; then
+            echo "prefix=preview-otg-pr-${PR_NUM}" >> "$GITHUB_OUTPUT"
+          else
+            echo "prefix=preview-otg" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Get stack name
         uses: govuk-one-login/github-actions/beautify-branch-name@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
         id: get-stack-name
         with:
           usage: Stack name
-          prefix: preview-otg-hmrc
+          prefix: ${{ steps.stack-name-prefix.outputs.prefix }}
           length-limit: 43
           verbose: false
 
