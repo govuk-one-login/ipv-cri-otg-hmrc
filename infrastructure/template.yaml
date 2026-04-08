@@ -891,6 +891,8 @@ Resources:
   TOTPSecretPolicySandbox:
     Condition: IsNotProdEnvironment
     Type: AWS::SecretsManager::ResourcePolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BlockPublicPolicy: false
       SecretId: !GetAtt TOTPSecretSandbox.Id
@@ -915,6 +917,8 @@ Resources:
   TOTPSecretPolicyMonitoring:
     Condition: IsNotProdOrIntegrationEnvironment
     Type: AWS::SecretsManager::ResourcePolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BlockPublicPolicy: false
       SecretId: !GetAtt TOTPSecretMonitoring.Id
