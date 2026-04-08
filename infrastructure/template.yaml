@@ -861,8 +861,8 @@ Resources:
   TOTPSecretSandbox:
     Type: AWS::SecretsManager::Secret
     Condition: IsNotProdEnvironment
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: !If [IsDevLikeEnvironment, !Ref AWS::NoValue, Retain]
+    UpdateReplacePolicy: !If [IsDevLikeEnvironment, !Ref AWS::NoValue, Retain]
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/sandbox
       KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
@@ -871,8 +871,8 @@ Resources:
   TOTPSecretMonitoring:
     Type: AWS::SecretsManager::Secret
     Condition: IsNotProdOrIntegrationEnvironment
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: !If [ IsDevLikeEnvironment, !Ref AWS::NoValue, Retain ]
+    UpdateReplacePolicy: !If [ IsDevLikeEnvironment, !Ref AWS::NoValue, Retain ]
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/monitoring
       KmsKeyId: !GetAtt SecretsManagerHandlerEncryptionKey.Arn
