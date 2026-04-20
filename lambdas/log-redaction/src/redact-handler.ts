@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-cloudwatch-logs";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/types";
 import { CloudWatchLogsDecodedData, CloudWatchLogsEvent } from "aws-lambda";
-import zlib from "zlib";
+import zlib from "node:zlib";
 import { redact } from "./redactor";
 import {
   DynamoDBClient,
