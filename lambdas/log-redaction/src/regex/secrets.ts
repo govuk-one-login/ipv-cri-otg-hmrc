@@ -1,26 +1,26 @@
 export const secretsPattern = [
   {
     regex: /\\"token\\":\s*\\"([^"]*)\\"/g,
-    replacement: '\\"token\\": \\"***\\"',
+    replacement: String.raw`\"token\": \"***\"`,
   },
   {
     regex: /\\\\"token\\\\":\s*\\\\"([^"]*)\\\\"/g,
-    replacement: '\\\\"token\\\\":\\\\"***\\\\"',
+    replacement: String.raw`\\"token\\":\\"***\\"`,
   },
   {
     regex: /\\\\\\"token\\\\\\":\s*\\\\\\"([^"]*)\\\\\\"/g,
-    replacement: '\\\\\\"token\\\\\\":\\\\\\"***\\\\\\"',
+    replacement: String.raw`\\\"token\\\":\\\"***\\\"`,
   },
   {
     regex: /\\"SecretString\\":\s*\\"([^"]*)\\"/g,
-    replacement: '\\"SecretString\\": \\"***\\"',
+    replacement: String.raw`\"SecretString\": \"***\"`,
   },
   {
     regex: /\\"totp\\":\s*\\"([^"]*)\\"/g,
-    replacement: '\\"totp\\": \\"***\\"',
+    replacement: String.raw`\"totp\": \"***\"`,
   },
   {
     regex: /\\"totpCode\\"\s*:\s*{\s*\\"value\\"\s*:\s*\\"([^"]*)\\"/g,
-    replacement: '\\"totpCode\\":{\\"value\\":\\"***\\"',
+    replacement: String.raw`\"totpCode\":{\"value\":\"***\"`,
   },
 ];
