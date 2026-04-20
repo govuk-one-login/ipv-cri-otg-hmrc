@@ -143,7 +143,7 @@ export class RedactHandler implements LambdaInterface {
   private formatMessage(message: string) {
     try {
       return JSON.stringify(JSON.parse(message), null, 2);
-    } catch (error) {
+    } catch {
       return message;
     }
   }
