@@ -13,9 +13,7 @@ export function redact(
   patterns?: { regex: RegExp; replacement: string }[],
   includeDefault: boolean = true
 ): string {
-  if (!patterns) {
-    patterns = defaultPatterns;
-  }
+  patterns ??= defaultPatterns;
   if (includeDefault) {
     patterns = patterns.concat(defaultPatterns);
   }
