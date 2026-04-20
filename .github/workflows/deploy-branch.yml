@@ -11,8 +11,6 @@ on:
         description: The region in which the stack was deployed
         value: ${{ jobs.deploy.outputs.aws-region }}
 
-permissions: {}
-
 jobs:
   build:
     name: Build SAM app
