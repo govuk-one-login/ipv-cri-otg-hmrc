@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         uses: govuk-one-login/github-actions/node/run-script@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
         with:
-          script: npm run test:coverage -- --config .github/jest.config.ci.ts
+          script: npm run test:coverage
 
       - name: Archive coverage results
         if: ${{ inputs.coverage-report }}
