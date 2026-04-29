@@ -1,41 +1,24 @@
 import * as zlib from "node:zlib";
 import { RedactHandler } from "../src/redact-handler";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import mocked = jest.mocked;
-import { ResourceAlreadyExistsException } from "@aws-sdk/client-cloudwatch-logs";
+import {
+  CloudWatchLogsClient,
+  CreateLogStreamCommand,
+  PutLogEventsCommand,
+  ResourceAlreadyExistsException,
+} from "@aws-sdk/client-cloudwatch-logs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockClient } from "aws-sdk-client-mock";
 
-let throwMockError: null | "Error" | "ResourceAlreadyExistsException" = null;
+const mockCloudwatchClient = mockClient(CloudWatchLogsClient);
+mockCloudwatchClient.on(PutLogEventsCommand).resolves({});
 
-jest.mock("@aws-sdk/client-cloudwatch-logs", () => {
-  const actual = jest.requireActual("@aws-sdk/client-cloudwatch-logs");
-  return {
-    ...actual,
-    CloudWatchLogsClient: jest.fn(() => ({
-      send: jest.fn().mockImplementation((command) => {
-        if (command instanceof actual.CreateLogStreamCommand) {
-          switch (throwMockError) {
-            case "ResourceAlreadyExistsException": {
-              throw new ResourceAlreadyExistsException({
-                $metadata: {},
-                message: "Resource already exists!",
-              });
-            }
-            case "Error": {
-              throw new Error("Error creating log stream");
-            }
-          }
-        }
-        return {
-          message: "",
-        };
-      }),
-    })),
-  };
-});
+const mockDDB = mockClient(DynamoDBClient);
+const mockDynamoDbClient = mockDDB as typeof mockDDB & DynamoDBClient; // Ensure that mockDynamoDbClient satisfies the DynamoDBClient class prototype
 
 describe("redact-handler", () => {
   beforeEach(() => {
-    throwMockError = null;
+    vi.clearAllMocks();
   });
 
   async function encode(payload: string) {
@@ -57,8 +40,7 @@ describe("redact-handler", () => {
   }
 
   it("should create log stream when does not exist", async () => {
-    const mockDynamoDbClient = mocked(DynamoDBClient);
-    mockDynamoDbClient.prototype.send = jest.fn().mockReturnValue({
+    mockDynamoDbClient.resolves({
       Count: 0,
     });
 
@@ -83,15 +65,14 @@ describe("redact-handler", () => {
         data: compressedData,
       },
     };
-    const handler = new RedactHandler(mockDynamoDbClient.prototype);
+    const handler = new RedactHandler(mockDynamoDbClient);
     const result = await handler.handler(event, {});
 
     expect(result).toStrictEqual({});
   });
 
   it("should try not create log stream when it already exists", async () => {
-    const mockDynamoDbClient = mocked(DynamoDBClient);
-    mockDynamoDbClient.prototype.send = jest.fn().mockReturnValue({
+    mockDynamoDbClient.resolves({
       Count: 1,
     });
 
@@ -116,7 +97,7 @@ describe("redact-handler", () => {
         data: compressedData,
       },
     };
-    const handler = new RedactHandler(mockDynamoDbClient.prototype);
+    const handler = new RedactHandler(mockDynamoDbClient);
     const result = await handler.handler(event, {});
 
     expect(result).toStrictEqual({});
@@ -150,12 +131,14 @@ describe("redact-handler", () => {
   });
 
   it("should throw when an error occurs creating a log stream", async () => {
-    const mockDynamoDbClient = mocked(DynamoDBClient);
-    mockDynamoDbClient.prototype.send = jest.fn().mockReturnValue({
+    mockDynamoDbClient.resolves({
       Count: 0,
     });
 
-    throwMockError = "Error";
+    mockCloudwatchClient
+      .on(CreateLogStreamCommand)
+      .rejects(new Error("Error creating log stream"));
+
     const piiData = {
       owner: undefined,
       logGroup: "dummy-log-group",
@@ -177,7 +160,7 @@ describe("redact-handler", () => {
         data: compressedData,
       },
     };
-    const handler = new RedactHandler(mockDynamoDbClient.prototype);
+    const handler = new RedactHandler(mockDynamoDbClient);
 
     await expect(handler.handler(event, {})).rejects.toThrow(
       new Error("Error creating log stream")
@@ -185,11 +168,17 @@ describe("redact-handler", () => {
   });
 
   it("should not throw when a ResourceAlreadyExistsException error occurs creating a log stream", async () => {
-    const mockDynamoDbClient = mocked(DynamoDBClient);
-    mockDynamoDbClient.prototype.send = jest.fn().mockReturnValue({
+    mockDynamoDbClient.resolves({
       Count: 0,
     });
-    throwMockError = "ResourceAlreadyExistsException";
+
+    mockCloudwatchClient.on(CreateLogStreamCommand).rejectsOnce(
+      new ResourceAlreadyExistsException({
+        $metadata: {},
+        message: "Resource already exists!",
+      })
+    );
+
     const piiData = {
       owner: undefined,
       logGroup: "dummy-log-group",
@@ -211,7 +200,7 @@ describe("redact-handler", () => {
         data: compressedData,
       },
     };
-    const handler = new RedactHandler(mockDynamoDbClient.prototype);
+    const handler = new RedactHandler(mockDynamoDbClient);
 
     const result = await handler.handler(event, {});
     expect(result).toStrictEqual({});

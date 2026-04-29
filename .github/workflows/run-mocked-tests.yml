@@ -19,4 +19,4 @@ jobs:
         uses: govuk-one-login/github-actions/node/run-script@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
         with:
           working-directory: integration-tests
-          script: npm run test:mocked -- --config jest.config.ci.ts
+          script: npm run test:mocked -- --reporters github-actions --reporters summary

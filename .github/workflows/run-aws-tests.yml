@@ -45,4 +45,4 @@ jobs:
           AWS_REGION: ${{ inputs.aws-region }}
         with:
           working-directory: integration-tests
-          script: npm run test:aws -- --config jest.config.ci.ts
+          script: npm run test:aws -- --reporters github-actions --reporters summary
