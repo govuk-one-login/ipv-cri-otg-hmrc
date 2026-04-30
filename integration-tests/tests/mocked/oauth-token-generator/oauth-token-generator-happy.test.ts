@@ -1,7 +1,6 @@
+import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { HistoryEvent } from "@aws-sdk/client-sfn";
 import { SfnContainerHelper } from "./sfn-container-helper";
-
-jest.setTimeout(60_000);
 
 describe("oauth-token-generator-happy.test", () => {
   let sfnContainer: SfnContainerHelper;

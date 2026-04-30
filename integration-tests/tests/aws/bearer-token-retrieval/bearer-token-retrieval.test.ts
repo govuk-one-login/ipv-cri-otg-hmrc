@@ -1,7 +1,6 @@
+import { beforeEach, describe, expect, it } from "vitest";
 import { stackOutputs } from "../resources/cloudformation-helper";
 import { executeExpressStepFunction } from "../resources/stepfunction-helper";
-
-jest.setTimeout(60_000);
 
 describe("bearer-token-retrieval", () => {
   const input = {
