@@ -1,5 +1,6 @@
 {
   "name": "otg-hmrc-api",
+  "type": "module",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
