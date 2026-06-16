@@ -22,7 +22,7 @@
     "@aws-lambda-powertools/tracer": "2.31.0",
     "@aws-sdk/client-cloudwatch-logs": "3.1012.0",
     "@aws-sdk/client-dynamodb": "3.1012.0",
-    "esbuild": "0.25.0",
+    "esbuild": "0.28.1",
     "time2fa": "1.2.2"
   },
   "devDependencies": {
