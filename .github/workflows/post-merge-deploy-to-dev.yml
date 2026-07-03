@@ -1,8 +1,6 @@
 name: Package for Dev
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
   workflow_dispatch: # Deploy Manually
 jobs:
   deploy:

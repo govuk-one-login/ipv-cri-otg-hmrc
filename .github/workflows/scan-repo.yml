@@ -3,8 +3,7 @@ name: Scan repository
 on:
   workflow_dispatch:
   pull_request:
-  push:
-    branches: [main]
+  workflow_call:
   schedule:
     # Every Monday at 9am
     - cron: "0 9 * * 1"
@@ -20,7 +19,6 @@ jobs:
     uses: ./.github/workflows/run-unit-tests.yml
     permissions:
       contents: read
-      actions: read
     with:
       coverage-report: true
 
@@ -31,7 +29,6 @@ jobs:
     if: ${{ success() || needs.coverage.result == 'skipped' }}
     permissions:
       contents: read
-      pull-requests: read
     steps:
       - name: Run SonarCloud scan
         uses: govuk-one-login/github-actions/code-quality/sonarcloud@5480cced560e896dea12c47ea33e548a4d093e65
@@ -46,7 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read
       security-events: write
     steps:
       - name: Run CodeQL scan
