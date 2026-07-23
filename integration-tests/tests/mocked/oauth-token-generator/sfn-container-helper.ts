@@ -190,7 +190,8 @@ export class SfnContainerHelper {
       throw new Error(
         `Error encountered during execution: ${
           error instanceof Error ? error.message : String(error)
-        } after ${MAX_RETRIES - retries} retries.`
+        } after ${MAX_RETRIES - retries} retries.`,
+        { cause: error }
       );
     }
   }
