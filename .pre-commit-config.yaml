@@ -27,3 +27,11 @@ repos:
     hooks:
       - id: cfn-lint
         files: .template\.ya?ml$
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        language: system
+        files: .[jt]sx?$
+        pass_filenames: false
+        entry: npm run lint
