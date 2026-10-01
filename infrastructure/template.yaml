@@ -46,6 +46,7 @@ Parameters:
 Conditions:
   EnforceCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, ""]]
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
+  IsSpokeVpc: !Equals [!Ref VpcStackName, spoke-vpc]
   IsDevEnvironment: !Equals [!Ref Environment, dev]
   IsLocalDevEnvironment: !Equals [!Ref Environment, localdev]
   IsDevLikeEnvironment:
@@ -124,6 +125,10 @@ Globals:
       SubnetIds:
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - !If
+          - IsSpokeVpc
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+          - !Ref AWS::NoValue
     Layers:
       # SEE https://github.com/govuk-one-login/observability-infrastructure/tree/main/lambdalayer
       - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_331_39_20260206-150338_with_collector_nodejs_arm:1
