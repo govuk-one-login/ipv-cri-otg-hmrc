@@ -77,3 +77,4 @@ jobs:
             cri:deployment-source=github-actions
           parameters: |
             Environment=dev
+            VpcStackName=spoke-vpc
