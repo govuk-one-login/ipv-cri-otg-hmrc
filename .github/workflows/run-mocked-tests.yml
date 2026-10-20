@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run tests
-        uses: govuk-one-login/github-actions/node/run-script@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           working-directory: integration-tests
           script: npm run test:mocked
