@@ -22,10 +22,11 @@ jobs:
     environment: development
     steps:
       - name: Pull repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+
         with:
           cache: npm
 
@@ -33,13 +34,13 @@ jobs:
         run: npm ci --include-workspace-root
 
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.DEPLOYMENT_ROLE_ARN }}
           aws-region: ${{ inputs.aws-region }}
 
       - name: Run tests
-        uses: govuk-one-login/github-actions/node/run-script@e6b6ed890b35904e1be79f7f35ffec983fa4d9db
+        uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
         env:
           STACK_NAME: ${{ inputs.stack-name }}
           AWS_REGION: ${{ inputs.aws-region }}

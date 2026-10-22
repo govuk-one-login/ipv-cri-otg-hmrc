@@ -31,7 +31,7 @@ jobs:
       contents: read
     steps:
       - name: Run SonarCloud scan
-        uses: govuk-one-login/github-actions/code-quality/sonarcloud@5480cced560e896dea12c47ea33e548a4d093e65
+        uses: govuk-one-login/github-actions/code-quality/sonarcloud@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,6 +46,6 @@ jobs:
       security-events: write
     steps:
       - name: Run CodeQL scan
-        uses: govuk-one-login/github-actions/code-quality/codeql@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        uses: govuk-one-login/github-actions/code-quality/codeql@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           languages: javascript-typescript

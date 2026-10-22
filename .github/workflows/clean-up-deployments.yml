@@ -20,13 +20,13 @@ jobs:
     environment: development
     steps:
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.DEPLOYMENT_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: Get stale preview stacks
-        uses: govuk-one-login/github-actions/sam/get-stale-stacks@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        uses: govuk-one-login/github-actions/sam/get-stale-stacks@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           threshold-days: 14
           stack-name-filter: preview-otg-hmrc
@@ -38,7 +38,7 @@ jobs:
 
       - name: Delete stacks
         if: ${{ env.STACKS != null }}
-        uses: govuk-one-login/github-actions/sam/delete-stacks@0eb1972f8c0d539b3ff4c24d78b3dba917343e7c
+        uses: govuk-one-login/github-actions/sam/delete-stacks@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           stack-names: ${{ env.STACKS }}
           verbose: true
