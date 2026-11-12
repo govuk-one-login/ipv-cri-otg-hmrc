@@ -168,7 +168,7 @@ Resources:
 
   StubTokenRefreshScheduler:
     Type: AWS::Scheduler::Schedule
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub ${AWS::StackName}-stub
       Description: OTG refresh schedule for the stub token
@@ -389,7 +389,7 @@ Resources:
 
   StubOAuthUrlParameter:
     Type: AWS::SSM::Parameter
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub /${AWS::StackName}/HMRC/OAuthURL/stub
       Type: String
@@ -773,7 +773,7 @@ Resources:
 
   BearerTokenStub:
     Type: AWS::SecretsManager::Secret
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/BearerToken/${AWS::StackName}/stub
       SecretString: '{"token":"goodToken","tokenExpiry":"1726568475877","tokenExpiryInMinutes":"120"}'
@@ -800,7 +800,7 @@ Resources:
 
   ClientIdStub:
     Type: AWS::SecretsManager::Secret
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/ClientId/${AWS::StackName}/stub
       SecretString: stub
@@ -827,7 +827,7 @@ Resources:
 
   ClientSecretStub:
     Type: AWS::SecretsManager::Secret
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/ClientSecret/${AWS::StackName}/stub
       SecretString: 11111-1111-1111-111111111111
@@ -854,7 +854,7 @@ Resources:
 
   TOTPSecretStub:
     Type: AWS::SecretsManager::Secret
-    Condition: IsNotProdOrIntegrationEnvironment
+    Condition: IsNotProdEnvironment
     Properties:
       Name: !Sub HMRC/TOTPSecret/${AWS::StackName}/stub
       SecretString: ABCDEFGHIJKLMNOP
