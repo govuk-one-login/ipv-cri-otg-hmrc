@@ -11,8 +11,8 @@
     "compile": "tsc"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudformation": "3.1012.0",
-    "@aws-sdk/lib-dynamodb": "3.1012.0",
+    "@aws-sdk/client-cloudformation": "3.1165.0",
+    "@aws-sdk/lib-dynamodb": "3.1165.0",
     "testcontainers": "12.2.1"
   }
 }
