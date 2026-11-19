@@ -29,7 +29,7 @@
     "@aws-sdk/client-sfn": "3.1169.0",
     "@eslint/js": "^10.0.1",
     "@types/aws-lambda": "8.10.134",
-    "@types/node": "^22.18.13",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "5.1.0",
     "aws-sdk-client-mock-vitest": "^8.0.0",
     "eslint": "10.15.0",
