@@ -23,6 +23,12 @@ jobs:
           role-to-assume: ${{ secrets.DEV_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@89ddb14d60e682855e3fea4be85b3c56485de310 # v3
+        with:
+          version: 1.159.1
+          use-installer: true
+
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/template.yaml
 
